@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Carpark Information</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css'
+        rel='stylesheet'
+        integrity='sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC'
+        crossorigin='anonymous'>
+
+    <!-- Vue 3 -->
+    <script src='https://cdn.jsdelivr.net/npm/vue@3.0.2/dist/vue.global.js'></script>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>Carpark Information</h1>
+        <div id="carpark-container">
+            <!-- Carpark data will be displayed here -->
+        </div>
+    </div> <!-- app: container -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchCarparkData();
+        });
+
+        function fetchCarparkData() {
+            fetch('http://localhost:5001/carparks_prices') // Ensure this URL matches your Flask app's URL and port
+                .then(response => response.json())
+                .then(data => {
+                    displayCarparkData(data.data.carparks);
+                })
+                .catch(error => console.error('Error fetching carpark data:', error));
+        }
+
+        function displayCarparkData(carparks) {
+            const container = document.getElementById('carpark-container');
+            container.innerHTML = ''; // Clear existing content
+
+            if (carparks.length === 0) {
+                container.innerHTML = '<p>No carpark data available.</p>';
+                return;
+            }
+
+            const list = document.createElement('ul');
+            carparks.forEach(carpark => {
+                const item = document.createElement('li');
+                item.textContent = `Carpark No: ${carpark.carparkNo}, Coordinates: ${carpark.coordinates}, Lots Available: ${carpark.lotsAvailable}, Lot Type: ${carpark.lotType}`;
+                list.appendChild(item);
+            });
+
+            container.appendChild(list);
+        }
+    </script>
+
+    <!-- Bootstrap Javascript -->
+    <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js'
+        integrity='sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM'
+        crossorigin='anonymous'></script>
+</body>
+</html>
