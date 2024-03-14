@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-    <title>Carpark Information</title>
+    <title>Title</title>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -14,49 +15,126 @@
 
     <!-- Vue 3 -->
     <script src='https://cdn.jsdelivr.net/npm/vue@3.0.2/dist/vue.global.js'></script>
+    <!-- Vue 3: production version, optimized for size and speed -->
+    <!-- <script src='https://cdn.jsdelivr.net/npm/vue@3.0.2/dist/vue.global.prod.js'></script> -->
+
 </head>
+
 <body>
     <div id="app" class="container">
-        <h1>Carpark Information</h1>
-        <div id="carpark-container">
-            <!-- Carpark data will be displayed here -->
-        </div>
-    </div> <!-- app: container -->
+        <h1>Carparks</h1>
+        <h2>Lots</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>PP Code</th>
+                    <th>Coordinates</th>
+                    <th>Lot Type</th>
+                    <th>Lots Available</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="lot in carparkData.lots" :key="lot.ppCode">
+                    <td>{{ lot.ppCode }}</td>
+                    <td>{{ lot.coordinates }}</td>
+                    <td>{{ lot.lotType }}</td>
+                    <td>{{ lot.lotsAvailable }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Prices</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>PP Code</th>
+                    <th>PP Name</th>
+                    <th>Vehicle Category</th>
+                    <th>Weekday Rate</th>
+                    <th>Saturday Rate</th>
+                    <th>Sunday & PH Rate</th>
+                    <th>Coordinates</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Park Capacity</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="price in carparkData.prices" :key="price.ppCode">
+                    <td>{{ price.ppCode }}</td>
+                    <td>{{ price.ppName }}</td>
+                    <td>{{ price.vehCat }}</td>
+                    <td>{{ price.weekdayRate }}</td>
+                    <td>{{ price.satdayRate }}</td>
+                    <td>{{ price.sunPHRate }}</td>
+                    <td>{{ price.coordinates }}</td>
+                    <td>{{ price.startTime }}</td>
+                    <td>{{ price.endTime }}</td>
+                    <td>{{ price.parkCapacity }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Season</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>PP Code</th>
+                    <th>PP Name</th>
+                    <th>Vehicle Category</th>
+                    <th>Monthly Rate</th>
+                    <th>Parking Hours</th>
+                    <th>Ticket Type</th>
+                    <th>Coordinates</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="season in carparkData.season" :key="season.ppCode">
+                    <td>{{ season.ppCode }}</td>
+                    <td>{{ season.ppName }}</td>
+                    <td>{{ season.vehCat }}</td>
+                    <td>{{ season.monthlyRate }}</td>
+                    <td>{{ season.parkingHrs }}</td>
+                    <td>{{ season.ticketType }}</td>
+                    <td>{{ season.coordinates }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            fetchCarparkData();
-        });
-
-        function fetchCarparkData() {
-            fetch('http://127.0.0.1:5001/carpark/getAll') // Ensure this URL matches your Flask app's URL and port
-                .then(response => response.json())
-                .then(data => {
-                    displayCarparkData(data.data.carparks);
-                })
-                .catch(error => console.error('Error fetching carpark data:', error));
-        }
-
-        function displayCarparkData(carparks) {
-            const container = document.getElementById('carpark-container');
-            container.innerHTML = ''; // Clear existing content
-
-            if (!carparks || carparks.length === 0) {
-                container.innerHTML = '<p>No carpark data available.</p>';
-                return;
+        const { createApp } = Vue;
+    
+        createApp({
+            data() {
+                return {
+                    carparkData: {
+                        lots: [],
+                        prices: [],
+                        season: []
+                    }
+                };
+            },
+            mounted() {
+                this.fetchCarparkData();
+            },
+            methods: {
+                async fetchCarparkData() {
+                    try {
+                        console.log("Fetching carpark data...");
+                        const response = await fetch("http://localhost:5001/carparks/getAll");
+                        const data = await response.json();
+                        console.log("Data received:", data);
+                        this.carparkData = data.data;
+                    } catch (error) {
+                        console.error("Error fetching carpark data:", error);
+                    }
+                }
             }
-
-            const list = document.createElement('ul');
-            carparks.forEach(carpark => {
-                const item = document.createElement('li');
-                item.textContent = `Carpark No: ${carpark.carparkNo}, Coordinates: ${carpark.coordinates}, Lots Available: ${carpark.lotsAvailable}, Lot Type: ${carpark.lotType}`;
-                list.appendChild(item);
-            });
-
-            container.appendChild(list);
-        }
+        }).mount('#app');
+        
     </script>
-
+        
     <!-- Bootstrap Javascript -->
     <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js'
         integrity='sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM'
