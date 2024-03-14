@@ -29,7 +29,7 @@
         });
 
         function fetchCarparkData() {
-            fetch('http://localhost:5001/carparks_prices') // Ensure this URL matches your Flask app's URL and port
+            fetch('http://127.0.0.1:5001/carpark/getAll') // Ensure this URL matches your Flask app's URL and port
                 .then(response => response.json())
                 .then(data => {
                     displayCarparkData(data.data.carparks);
@@ -41,7 +41,7 @@
             const container = document.getElementById('carpark-container');
             container.innerHTML = ''; // Clear existing content
 
-            if (carparks.length === 0) {
+            if (!carparks || carparks.length === 0) {
                 container.innerHTML = '<p>No carpark data available.</p>';
                 return;
             }
