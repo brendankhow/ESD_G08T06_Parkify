@@ -16,5 +16,5 @@ To view all in webpage: /carpark/getAll
 
 
 
-#capark Users
-username, email, favourites [list] (ppcode)
+#capark Users (multiple extries per user)
+username, email, favourite(ppcode)
