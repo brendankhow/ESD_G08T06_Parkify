@@ -24,33 +24,45 @@
     </div> <!-- app: container -->
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Sample user data
-            const userData = [
-                {"username": "1", "email": "1@gmail.com", "favourite": "A0004"},
-                {"username": "2", "email": "2@gmail.com", "favourite": "A0004"},
-                {"username": "1", "email": "1@gmail.com", "favourite": "A0005"},
-                {"username": "2", "email": "2@gmail.com", "favourite": "A0005"},
-                {"username": "1", "email": "1@gmail.com", "favourite": "A0006"}
-            ];
 
-            // Send POST request to insert users
-            fetch('http://127.0.0.1:5002/insert_users', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(userData)
-            })
-            .then(response => {
-                if (response.ok) {
-                    console.log('Users inserted successfully');
-                } else {
-                    console.error('Failed to insert users');
-                }
-            })
-            .catch(error => console.error('Error inserting users:', error));
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchUserData();
         });
+
+        function fetchUserData() {
+            fetch('http://127.0.0.1:5002/users')
+                .then(response => response.json())
+                .then(data => {
+                    displayUserData(data.data.users);
+                })
+                .catch(error => console.error('Error fetching user data:', error));
+        }
+
+        function displayUserData(users) {
+            const container = document.getElementById('carpark-container');
+            container.innerHTML = ''; // Clear existing content
+
+            if (!users || users.length === 0) {
+                container.innerHTML = '<p>No user data available.</p>';
+                return;
+            }
+
+            const list = document.createElement('ul');
+            users.forEach(user => {
+                const item = document.createElement('li');
+                item.textContent = `Username: ${user.username}, Email: ${user.email}, Favourite: ${user.favourite}`;
+                list.appendChild(item);
+            });
+
+            container.appendChild(list);
+        }
+
+
+
+
+
+
+
 
         document.addEventListener('DOMContentLoaded', function() {
             fetchCarparkData();
