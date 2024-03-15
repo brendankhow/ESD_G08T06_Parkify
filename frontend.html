@@ -31,7 +31,13 @@
     <script>
 
         document.addEventListener('DOMContentLoaded', function() {
-            // No need to fetch data initially
+                    const params = new URLSearchParams(window.location.search);
+                    const username = params.get('username');
+
+                    if(username) {
+                        console.log('Logged in as:', username);
+                        // You can use the username to fetch user favorites or perform other actions
+                    }
         });
 
         function fetchUserData() {
