@@ -12,7 +12,7 @@ db = SQLAlchemy(app)
 CORS(app)
 
 class User(db.Model):
-    __tablename__ = 'users'
+    __tablename__ = 'users_fav_table'
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), nullable=False)
