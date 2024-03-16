@@ -25,6 +25,11 @@ class Location(db.Model):
         return {"carparkName": self.carparkName, "coordinates": self.coordinates}
 
 def fetch_carpark_coordinates(location):
+    # Clear previous search results
+    db.session.query(Location).delete()
+    db.session.commit()
+
+
     API_KEY = 'AIzaSyBx3sJpEQFY3o-4VYkT7Zfcwh8OABpTS-s'
     map_client = googlemaps.Client(API_KEY)
 
