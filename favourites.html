@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Favourites</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+<body>
+    <div id="favourites-container" style="padding: 10px; overflow-y: scroll; height: 100%; background-color: lightblue;">
+        <!-- Favourites will be displayed here -->
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            const username = params.get('username');
+
+            if(username) {
+                console.log('Username:', username);
+                fetchFavourites(username);
+            } else {
+                console.log('No username provided.');
+            }
+        });
+
+        function fetchFavourites(username) {
+            // Replace with the correct URL to fetch user favourites
+            const url = `http://127.0.0.1:5002/users_fav_table/${username}`;
+            console.log('Fetch URL:', url);
+            
+            fetch(url)
+                .then(response => {
+                    console.log('Response:', response);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Data:', data);
+                    displayFavourites(data.favourites);
+                })
+                .catch(error => console.error('Error fetching favourites:', error));
+        }
+
+        function displayFavourites(favourites) {
+            const container = document.getElementById('favourites-container');
+            container.innerHTML = ''; // Clear existing content
+
+            if (!favourites || favourites.length === 0) {
+                container.innerHTML = '<p>No favourites available.</p>';
+                return;
+            }
+
+            if (typeof favourites === 'string') {
+                // If favourites is a string, create a single list item
+                const list = document.createElement('ul');
+                const item = document.createElement('li');
+                item.textContent = favourites;
+                list.appendChild(item);
+                container.appendChild(list);
+            } else if (Array.isArray(favourites)) {
+                // If favourites is an array, create a list of items
+                const list = document.createElement('ul');
+                favourites.forEach(favourite => {
+                    const item = document.createElement('li');
+                    item.textContent = favourite;
+                    list.appendChild(item);
+                });
+                container.appendChild(list);
+            } else {
+                container.innerHTML = '<p>No favourites available.</p>';
+            }
+        }
+
+
+    </script>
+</body>
+</html>

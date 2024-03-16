@@ -32,5 +32,13 @@ def get_all_users():
         return jsonify({"code": 200, "data": {"users": formatted_users}})
     return jsonify({"code": 404, "message": "There are no users."}), 404
 
+@app.route("/users_fav_table/<username>")
+def get_user_favourites(username):
+    user = User.query.filter_by(username=username).first()
+    if user:
+        return jsonify({"code": 200, "data": {"favourites": user.favourite}})
+    return jsonify({"code": 404, "message": "User not found."}), 404
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5002, debug=True)
