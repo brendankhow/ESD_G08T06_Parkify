@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from sqlalchemy import create_engine, text
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:3306/users_db'
@@ -39,6 +40,14 @@ def get_user_favourites(username):
         return jsonify({"code": 200, "data": {"favourites": user.favourite}})
     return jsonify({"code": 404, "message": "User not found."}), 404
 
-
 if __name__ == '__main__':
+    with app.app_context():
+        engine = create_engine('mysql+mysqlconnector://root:root@localhost:3306')
+        with engine.connect() as connection:
+            connection.execute(text("CREATE DATABASE IF NOT EXISTS users_db"))
+            connection.execute(text("USE users_db"))
+            connection.execute(text("CREATE TABLE IF NOT EXISTS users_fav_table (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, favourite VARCHAR(255) NOT NULL)"))
+            connection.execute(text("CREATE TABLE IF NOT EXISTS users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, PRIMARY KEY (username, email))"))
+        db.create_all()
     app.run(host='0.0.0.0', port=5002, debug=True)
+
