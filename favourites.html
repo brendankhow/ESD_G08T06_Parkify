@@ -26,7 +26,7 @@
 
         function fetchFavourites(username) {
             // Replace with the correct URL to fetch user favourites
-            const url = `http://127.0.0.1:5002/users_fav_table/${username}`;
+            const url = `http://127.0.0.1:5002/users`;
             console.log('Fetch URL:', url);
             
             fetch(url)
@@ -35,8 +35,13 @@
                     return response.json();
                 })
                 .then(data => {
-                    console.log('Data:', data);
-                    displayFavourites(data.favourites);
+                    console.log('DATA:', data);
+                    console.log('Users:', data.data.users);
+                    const userFavourites = data.data.users
+                        .filter(user => user.username === username)
+                        .map(user => user.favourite);
+                    console.log('User favourites:', userFavourites);
+                    displayFavourites(userFavourites);
                 })
                 .catch(error => console.error('Error fetching favourites:', error));
         }
@@ -50,19 +55,12 @@
                 return;
             }
 
-            if (typeof favourites === 'string') {
-                // If favourites is a string, create a single list item
-                const list = document.createElement('ul');
-                const item = document.createElement('li');
-                item.textContent = favourites;
-                list.appendChild(item);
-                container.appendChild(list);
-            } else if (Array.isArray(favourites)) {
+            if (Array.isArray(favourites)) {
                 // If favourites is an array, create a list of items
                 const list = document.createElement('ul');
                 favourites.forEach(favourite => {
                     const item = document.createElement('li');
-                    item.textContent = favourite;
+                    item.textContent = favourite.favourite;
                     list.appendChild(item);
                 });
                 container.appendChild(list);
@@ -70,8 +68,6 @@
                 container.innerHTML = '<p>No favourites available.</p>';
             }
         }
-
-
     </script>
 </body>
 </html>
