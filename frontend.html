@@ -51,38 +51,10 @@
     </div>
 
 
-        <script>
-        const { createApp } = Vue;
-    
-        createApp({
-            data() {
-                return {
-                    carparkData: {
-                        lots: [],
-                        prices: [],
-                        season: []
-                    }
-                };
-            },
-            mounted() {
-                this.fetchCarparkData();
-            },
-            methods: {
-                async fetchCarparkData() {
-                    try {
-                        console.log("Fetching carpark data...");
-                        const response = await fetch("http://localhost:5001/carparks/getAll");
-                        const data = await response.json();
-                        console.log("Data received:", data);
-                        this.carparkData = data.data;
-                    } catch (error) {
-                        console.error("Error fetching carpark data:", error);
-                    }
-                }
-            }
-        }).mount('#app');
+    <script>
+       
         
-    </script> -->
+    </script>
         
     <script>
         
