@@ -40,47 +40,28 @@ def fetch_carpark_coordinates(location):
     API_KEY = 'AIzaSyBx3sJpEQFY3o-4VYkT7Zfcwh8OABpTS-s'
     map_client = googlemaps.Client(API_KEY)
 
-    address = location
-    geocode = map_client.geocode(address=address)
-    (lat, lng) = map(geocode[0]['geometry']['location'].get, ('lat', 'lng'))
-    search_string = 'parking'
-    distance = 50
-    business_list = []
+    # Retrieve geocoding information for the provided location
+    geocode_result = map_client.geocode(address=location)
 
-    response = map_client.places_nearby(
-        location=(lat, lng),
-        keyword=search_string,
-        radius=distance
-    )
-    
-    business_list.extend(response.get('results'))
-    next_page_token = response.get('next_page_token')
-
-    while next_page_token:
-        time.sleep(2)
-        response = map_client.places_nearby(
-            location=(lat, lng),
-            keyword=search_string,
-            radius=distance,
-            page_token=next_page_token
-        )
-        business_list.extend(response.get('results'))
-        next_page_token = response.get('next_page_token')
-
-    for result in business_list:
-        carpark_name = result['name']
-        location = result['geometry']['location']
-        # Convert coordinates to SVY21 format
-        svy21_coords = transformer.transform(location['lat'], location['lng'])
-        coordinates = f"{svy21_coords[0]},{svy21_coords[1]}"
+    if geocode_result:
+        # Extract latitude and longitude from the geocoding result
+        latitude = geocode_result[0]['geometry']['location']['lat']
+        longitude = geocode_result[0]['geometry']['location']['lng']
+        
+        # Convert the latitude and longitude to a string format
+        coordinates = f"{latitude},{longitude}"
+        
         # Check if car park exists, update if it does, otherwise insert new
-        carpark = Location.query.get(carpark_name)
+        carpark = Location.query.get(location)
         if carpark:
             carpark.coordinates = coordinates
         else:
-            new_carpark = Location(carparkName=carpark_name, coordinates=coordinates)
+            new_carpark = Location(carparkName=location, coordinates=coordinates)
             db.session.add(new_carpark)
-    db.session.commit()
+        db.session.commit()
+        return jsonify({"message": "Carpark location updated successfully."}), 200
+    else:
+        return jsonify({"message": "No location found for the provided input."}), 404
 
 @app.route("/locations/update")
 def update_carpark_locations():
@@ -103,4 +84,4 @@ def get_carpark_locations():
         return jsonify({"message": "No carpark locations found."}), 404
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=4001, debug=True)
+    app.run(host='0.0.0.0', port=3001, debug=True)
