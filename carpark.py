@@ -7,7 +7,7 @@ import logging
 
 app = Flask(__name__)
 CORS(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:3306/carpark'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/carpark?charset=utf8'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -31,7 +31,8 @@ class Lots(db.Model):
 
 class Prices(db.Model):
     __tablename__ = 'prices'
-    ppCode = db.Column(db.String(5), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)  # New auto-incrementing ID field
+    ppCode = db.Column(db.String(5))
     weekdayMin = db.Column(db.String(10))
     weekdayRate = db.Column(db.String(10))
     parkingSystem = db.Column(db.String(1))
@@ -202,47 +203,54 @@ def fetch_carpark_prices():
         return []
     
 def insert_carpark_prices(prices_data):
+    # Check if the database is empty
+    is_db_empty = Prices.query.first() is None
+
     for item in prices_data:
         ppCode = item.get("ppCode")
-        price = Prices.query.filter_by(ppCode=ppCode).first()
+        startTime = item.get("startTime")
+        endTime = item.get("endTime")
         # Safely handle geometries list to avoid IndexError
         geometries = item.get("geometries", [{}])  # Keep as list of dictionaries
         coordinates = geometries[0].get("coordinates", "0,0") if geometries else "0,0"
 
-        if price:
-            # Update existing record
-            price.weekdayMin = item.get("weekdayMin")
-            price.weekdayRate = item.get("weekdayRate")
-            price.parkingSystem = item.get("parkingSystem")
-            price.ppName = item.get("ppName")
-            price.vehCat = item.get("vehCat")
-            price.satdayMin = item.get("satdayMin")
-            price.satdayRate = item.get("satdayRate")
-            price.sunPHMin = item.get("sunPHMin")
-            price.sunPHRate = item.get("sunPHRate")
-            price.coordinates = geometries[0].get("coordinates", "0,0") if geometries else "0,0"
-            price.startTime = item.get("startTime")
-            price.parkCapacity = item.get("parkCapacity")
-            price.endTime = item.get("endTime")
-        else:
-            # Insert new record
-            new_price = Prices(
-                ppCode=ppCode,
-                weekdayMin=item.get("weekdayMin"),
-                weekdayRate=item.get("weekdayRate"),
-                parkingSystem=item.get("parkingSystem"),
-                ppName=item.get("ppName"),
-                vehCat=item.get("vehCat"),
-                satdayMin=item.get("satdayMin"),
-                satdayRate=item.get("satdayRate"),
-                sunPHMin=item.get("sunPHMin"),
-                sunPHRate=item.get("sunPHRate"),
-                geometries=geometries,
-                startTime=item.get("startTime"),
-                parkCapacity=item.get("parkCapacity"),
-                endTime=item.get("endTime")
-            )
-            db.session.add(new_price)
+        if not is_db_empty:
+            # Check for existing record
+            price = Prices.query.filter_by(ppCode=ppCode, startTime=startTime, endTime=endTime).first()
+            if price:
+                # Update existing record
+                price.weekdayMin = item.get("weekdayMin")
+                price.weekdayRate = item.get("weekdayRate")
+                price.parkingSystem = item.get("parkingSystem")
+                price.ppName = item.get("ppName")
+                price.vehCat = item.get("vehCat")
+                price.satdayMin = item.get("satdayMin")
+                price.satdayRate = item.get("satdayRate")
+                price.sunPHMin = item.get("sunPHMin")
+                price.sunPHRate = item.get("sunPHRate")
+                price.coordinates = geometries[0].get("coordinates", "0,0") if geometries else "0,0"
+                price.parkCapacity = item.get("parkCapacity")
+                continue  # Skip to the next iteration
+
+        # Insert new record
+        new_price = Prices(
+            ppCode=ppCode,
+            weekdayMin=item.get("weekdayMin"),
+            weekdayRate=item.get("weekdayRate"),
+            parkingSystem=item.get("parkingSystem"),
+            ppName=item.get("ppName"),
+            vehCat=item.get("vehCat"),
+            satdayMin=item.get("satdayMin"),
+            satdayRate=item.get("satdayRate"),
+            sunPHMin=item.get("sunPHMin"),
+            sunPHRate=item.get("sunPHRate"),
+            geometries=geometries,
+            startTime=startTime,
+            parkCapacity=item.get("parkCapacity"),
+            endTime=endTime
+        )
+        db.session.add(new_price)
+
     db.session.commit()
 
 def fetch_carpark_season():
@@ -437,6 +445,11 @@ def get_all():
             "message": "There are no carpark data."
         }
     ), 404
+
+@app.route('/get_prices_data', methods=['GET'])
+def get_prices_data():
+    prices_data = fetch_carpark_prices()
+    return jsonify({"count": len(prices_data)})
 # @app.route("/carpark/<string:carparkNo>")
 # def find_by_id(carparkNo):
 #     lotsAvailability = db.session.scalars(
