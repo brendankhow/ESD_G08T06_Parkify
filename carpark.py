@@ -306,7 +306,7 @@ def update_carparks_lots():
         return jsonify({"message": "Failed to fetch or update carpark lots data."}), 500
     
 @app.route("/carparks_lots")
-def get_lots():
+def get_carparks_lots():
     lotsList = db.session.scalars(db.select(Lots)).all()
 
     if len(lotsList):
@@ -335,7 +335,7 @@ def update_carparks_prices():
         return jsonify({"message": "Failed to fetch or update carpark prices."}), 500
     
 @app.route("/carparks_prices")
-def get_carpark_prices():
+def get_carparks_prices():
     prices_list = Prices.query.all()
     if prices_list:
         return jsonify({
@@ -358,7 +358,7 @@ def update_carparks_season():
         return jsonify({"message": "Failed to fetch or update carpark season data."}), 500
     
 @app.route("/carparks_season")
-def get_carpark_season():
+def get_carparks_season():
     season_list = Season.query.all()
     if season_list:
         return jsonify({
@@ -402,7 +402,41 @@ def get_all_carparks():
             "message": "There are no carpark data."
         }
     ), 404
- 
+
+@app.route("/getAllCarparks")
+def get_all():
+    lotsList = db.session.scalars(db.select(Lots)).all()
+    pricesList = Prices.query.all()
+    seasonList = Season.query.all()
+
+    combinedData = []
+
+    if len(lotsList) and len(pricesList) and len(seasonList):
+        for price in pricesList:
+            lot = next((lot for lot in lotsList if lot.ppCode == price.ppCode), None)
+            season = next((season for season in seasonList if season.ppCode == price.ppCode), None)
+
+            combinedItem = price.json()
+            if lot is not None:
+                combinedItem.update(lot.json())
+            if season is not None:
+                combinedItem.update(season.json())
+
+            combinedData.append(combinedItem)
+
+        return jsonify(
+            {
+                "code": 200,
+                "data": combinedData
+            }
+        )
+
+    return jsonify(
+        {
+            "code": 404,
+            "message": "There are no carpark data."
+        }
+    ), 404
 # @app.route("/carpark/<string:carparkNo>")
 # def find_by_id(carparkNo):
 #     lotsAvailability = db.session.scalars(

@@ -1,13 +1,20 @@
 # esd-group6
-change port number to mamp port number in carpark.py and users.py
-create empty carpaprk db in mysql
-run python3 carpark.py
+What to do before running:
+1) change port number to mamp port number
+2) create carpaprk db in mysql
 
-To insert into db: /update_carparks_lotsAvailability
-To view in json on webpage: /carparks_lotsAvailability
+To run the file: run python3 carpark.py
+
+To insert all data into db: /carparks/updateAll
+To view all in webpage: /carparks/getAll
+
+
+To view:
+To insert into db: /update_carparks_lots
+To view in json on webpage: /carparks_lots"
 
 To insert into db: /update_carparks_prices
-To view in json on webpage:carparks_prices
+/To view in json on webpage:carparks_prices
 
 To insert into db: /update_carparks_season
 To view in json on webpage:/carparks_season
