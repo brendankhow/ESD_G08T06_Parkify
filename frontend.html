@@ -50,26 +50,26 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="data in combinedData" :key="data.ppCode">
-                    <td>{{ data.ppCode }}</td>
-                    <td>{{ data.coordinates }}</td>
-                    <td>{{ data.ppName }}</td>
-                    <td>{{ data.vehCat }}</td>
-                    <td>{{ data.parkingSystem }}</td>
-                    <td>{{ data.lotType }}</td>
-                    <td>{{ data.lotsAvailable }}</td>
-                    <td>{{ data.weekdayRate }}</td>
-                    <td>{{ data.weekdayMin }}</td>
-                    <td>{{ data.satdayRate }}</td>
-                    <td>{{ data.satdayMin }}</td>
-                    <td>{{ data.sunPHRate }}</td>
-                    <td>{{ data.sunPHMin }}</td>
-                    <td>{{ data.startTime }}</td>
-                    <td>{{ data.endTime }}</td>
-                    <td>{{ data.parkCapacity }}</td>
-                    <td>{{ data.monthlyRate }}</td>
-                    <td>{{ data.parkingHrs }}</td>
-                    <td>{{ data.ticketType }}</td>
+                <tr v-for="item in combinedData" :key="item.ppCode">
+                    <td>{{ item.ppCode }}</td>
+                    <td>{{ item.coordinates }}</td>
+                    <td>{{ item.ppName }}</td>
+                    <td>{{ item.vehCat }}</td>
+                    <td>{{ item.parkingSystem }}</td>
+                    <td>{{ item.lotType }}</td>
+                    <td>{{ item.lotsAvailable }}</td>
+                    <td>{{ item.weekdayRate }}</td>
+                    <td>{{ item.weekdayMin }}</td>
+                    <td>{{ item.satdayRate }}</td>
+                    <td>{{ item.satdayMin }}</td>
+                    <td>{{ item.sunPHRate }}</td>
+                    <td>{{ item.sunPHMin }}</td>
+                    <td>{{ item.startTime }}</td>
+                    <td>{{ item.endTime }}</td>
+                    <td>{{ item.parkCapacity }}</td>
+                    <td>{{ item.monthlyRate }}</td>
+                    <td>{{ item.parkingHrs }}</td>
+                    <td>{{ item.ticketType }}</td>
                 </tr>
 
                 <p>Number of rows in combined data: {{ combinedDataCount }}</p>
@@ -208,30 +208,10 @@
         createApp({
             data() {
                 return {
-                    carparkData: {
-                        lots: [],
-                        prices: [],
-                        season: []
-                    }
+                    combinedData: []
                 };
             },
             computed: {
-                combinedData() {
-                    let combined = [];
-
-                    this.carparkData.prices.forEach(price => {
-                        let lot = this.carparkData.lots.find(lot => lot.ppCode === price.ppCode) || {};
-                        let season = this.carparkData.season.find(season => season.ppCode === price.ppCode) || {};
-
-                        combined.push({
-                            ...price,
-                            ...lot,
-                            ...season
-                        });
-                    });
-
-                    return combined;
-                },
                 combinedDataCount() {
                     return this.combinedData.length;
                 }
@@ -243,10 +223,10 @@
                 async fetchCarparkData() {
                     try {
                         console.log("Fetching carpark data...");
-                        const response = await fetch("http://localhost:5001/carparks/getAll");
+                        const response = await fetch("http://localhost:5001/getAllCarparks");
                         const data = await response.json();
                         console.log("Data received:", data);
-                        this.carparkData = data.data;
+                        this.combinedData = data.data;
                     } catch (error) {
                         console.error("Error fetching carpark data:", error);
                     }

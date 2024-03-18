@@ -402,7 +402,41 @@ def get_all_carparks():
             "message": "There are no carpark data."
         }
     ), 404
- 
+
+@app.route("/getAllCarparks")
+def get_all():
+    lotsList = db.session.scalars(db.select(Lots)).all()
+    pricesList = Prices.query.all()
+    seasonList = Season.query.all()
+
+    combinedData = []
+
+    if len(lotsList) and len(pricesList) and len(seasonList):
+        for price in pricesList:
+            lot = next((lot for lot in lotsList if lot.ppCode == price.ppCode), None)
+            season = next((season for season in seasonList if season.ppCode == price.ppCode), None)
+
+            combinedItem = price.json()
+            if lot is not None:
+                combinedItem.update(lot.json())
+            if season is not None:
+                combinedItem.update(season.json())
+
+            combinedData.append(combinedItem)
+
+        return jsonify(
+            {
+                "code": 200,
+                "data": combinedData
+            }
+        )
+
+    return jsonify(
+        {
+            "code": 404,
+            "message": "There are no carpark data."
+        }
+    ), 404
 # @app.route("/carpark/<string:carparkNo>")
 # def find_by_id(carparkNo):
 #     lotsAvailability = db.session.scalars(
