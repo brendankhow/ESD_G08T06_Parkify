@@ -24,3 +24,4 @@ Bring login.html, check_user.php, frontend.html to ur localhost route to run fro
 Run from there, make sure u change check what's ur port number in address tab when it's open in chrome. 
 
 Frontend.html will be empty when u enter it as there is no username passed into it therefore, run login.html and login accordingly for it to lead to frontend.html.
+cc
