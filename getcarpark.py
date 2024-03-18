@@ -7,6 +7,7 @@ from math import sin, cos, sqrt, radians, atan2
 from pyproj import Proj,transform 
 import pyproj
 from operator import itemgetter
+import requests
 
 app = Flask(__name__)
 CORS(app)
@@ -95,6 +96,15 @@ class Prices(db.Model):
 @app.route("/data")
 
 def get_data():
+    # Retrieve location data from the external API
+    response = requests.get("http://localhost:5001/getAllCarparks")
+    if response.status_code != 200:
+        # Handle the case where the request fails
+        return jsonify({"error": "Failed to retrieve data from the external API"}), 500
+
+    carpark_data = response.json()["data"]  # Access the list of car park data
+    
+    # Extracting coordinates directly
     # Retrieve specific columns from the Location table
     location_data = Location.query.with_entities(Location.coordinates).all()
     location_data = [row.coordinates for row in location_data]  # Extracting coordinates directly
@@ -109,10 +119,11 @@ def get_data():
     # Create transformer
     transformer = pyproj.Transformer.from_crs(svy21_crs, wgs84_crs)
 
-    filtered_prices_data = []
-    for row in Prices.query.all():
-        longitude2 = float(row.coordinates.split(',')[0])
-        latitude2 = float(row.coordinates.split(',')[1])
+    filtered_carpark_data = []
+    for carpark in carpark_data:
+        coordinates = (float(carpark["coordinates"].split(',')[0]), float(carpark["coordinates"].split(',')[1]))
+        longitude2 = coordinates[0]
+        latitude2 = coordinates[1]
         lon2, lat2 = transformer.transform(latitude2, longitude2)
         radlon2 = radians(lon2)
         radlat2 = radians(lat2)
@@ -121,44 +132,33 @@ def get_data():
         a = sin(dlat / 2)**2 + cos(lat1) * cos(radlat2) * sin(dlon / 2)**2
         c = 2 * atan2(sqrt(a), sqrt(1 - a))
         distance = c * 6371.0
-        filtered_prices_data.append({
-            "ppCode": row.ppCode,
-            "weekdayMin": row.weekdayMin,
-            "weekdayRate": row.weekdayRate,
-            "parkingSystem": row.parkingSystem,
-            "ppName": row.ppName,
-            "vehCat": row.vehCat,
-            "satdayMin": row.satdayMin,
-            "satdayRate": row.satdayRate,
-            "sunPHMin": row.sunPHMin,
-            "sunPHRate": row.sunPHRate,
-            "coordinates": row.coordinates,
-            "startTime": row.startTime,
-            "parkCapacity": row.parkCapacity,
-            "endTime": row.endTime,
+        filtered_carpark_data.append({
+            "coordinates": carpark["coordinates"],
+            "endTime": carpark["endTime"],
+            "lotType": carpark.get("lotType"),  # Assuming lotType might not be available for all car parks
+            "lotsAvailable": carpark.get("lotsAvailable"),  # Assuming lotsAvailable might not be available for all car parks
+            "parkCapacity": carpark["parkCapacity"],
+            "parkingSystem": carpark["parkingSystem"],
+            "ppCode": carpark["ppCode"],
+            "ppName": carpark["ppName"],
+            "satdayMin": carpark["satdayMin"],
+            "satdayRate": carpark["satdayRate"],
+            "startTime": carpark["startTime"],
+            "sunPHMin": carpark["sunPHMin"],
+            "sunPHRate": carpark["sunPHRate"],
+            "vehCat": carpark["vehCat"],
+            "weekdayMin": carpark["weekdayMin"],
+            "weekdayRate": carpark["weekdayRate"],
             "distance": distance
         })
 
     # Sort the data based on distance
-    filtered_prices_data.sort(key=itemgetter('distance'))
+    filtered_carpark_data.sort(key=itemgetter('distance'))
 
     # Get the top 10 shortest distances
-    top_10_distances = filtered_prices_data[:10]
+    top_10_distances = filtered_carpark_data[:10]
 
     return jsonify(top_10_distances)
-
-
-
-
-    
-    
-
-
-
-def reverse_coordinates(coordinates):
-    lat, lng = coordinates.split(',')
-    return f"{lng},{lat}"
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=4002, debug=True)
