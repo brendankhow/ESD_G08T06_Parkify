@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Carpark Locations</title>
+    <!-- Include Vue.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+</head>
+<body>
+    <div id="app">
+        <input type="text" v-model="searchQuery" placeholder="Enter location">
+        <button @click="search">Search</button>
+        <ul>
+            <li v-for="carpark in carparks" :key="carpark.ppCode">
+                <div>Name: {{ carpark.ppName }}</div>
+                <div>Code: {{ carpark.ppCode }}</div>
+                <div>Coordinates: {{ carpark.coordinates }}</div>
+                <div>Distance: {{ carpark.distance.toFixed(3) }} km</div>
+                <div v-if="carpark.lotType">Lot Type: {{ carpark.lotType }}</div>
+                <div v-if="carpark.lotsAvailable">Lots Available: {{ carpark.lotsAvailable }}</div>
+                <div>Capacity: {{ carpark.parkCapacity }}</div>
+                <div>Parking System: {{ carpark.parkingSystem }}</div>
+                <div>Weekday Rate: {{ carpark.weekdayRate }}</div>
+                <div>Saturday Rate: {{ carpark.satdayRate }}</div>
+                <div>Sunday & Public Holiday Rate: {{ carpark.sunPHRate }}</div>
+                <div>Operating Hours: {{ carpark.startTime }} - {{ carpark.endTime }}</div>
+            </li>
+        </ul>
+    </div>
+    
+    
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                searchQuery: '',
+                carparks: [] // Updated variable name for clarity
+            },
+            methods: {
+                search() {
+                    // Send search query to backend to fetch geocode
+                    fetch(`http://localhost:3001/locations?location=${this.searchQuery}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Once coordinates are fetched, call the method to fetch car park data
+                            this.getCarParkData();
+                        })
+                        .catch(error => {
+                            console.error('Error fetching locations:', error);
+                        });
+                },
+                getCarParkData() {
+                    // Fetch car park data from getcarpark.py
+                    fetch('http://localhost:4002/data')
+                        .then(response => response.json())
+                        .then(data => {
+                            // Update carparks with the new data
+                            this.carparks = data; // Directly assign the data assuming it matches the expected format
+                        })
+                        .catch(error => {
+                            console.error('Error fetching car park data:', error);
+                        });
+                }
+            }
+        });
+    </script>
+    
+    
+</body>
+</html>
