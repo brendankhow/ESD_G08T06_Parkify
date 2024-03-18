@@ -22,7 +22,62 @@
 
 <body>
     <div id="app" class="container">
-        <h1>Carparks</h1>
+        <h1>Carparks Information</h1>
+        
+        <!-- table for all data (all 3 tables) -->
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>PP Code</th>
+                    <th>Coordinates</th>
+                    <th>PP Name</th>
+                    <th>Vehicle Category</th>
+                    <th>Parking System</th>
+                    <th>Lot Type</th>
+                    <th>Lots Available</th>
+                    <th>Weekday Rate</th>
+                    <th>Weekday Min</th>
+                    <th>Saturday Rate</th>
+                    <th>Saturday Min</th>
+                    <th>Sunday & PH Rate</th>
+                    <th>Sunday & PH Min</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Park Capacity</th>
+                    <th>Monthly Rate</th>
+                    <th>Parking Hours</th>
+                    <th>Ticket Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="item in combinedData" :key="item.ppCode">
+                    <td>{{ item.ppCode }}</td>
+                    <td>{{ item.coordinates }}</td>
+                    <td>{{ item.ppName }}</td>
+                    <td>{{ item.vehCat }}</td>
+                    <td>{{ item.parkingSystem }}</td>
+                    <td>{{ item.lotType }}</td>
+                    <td>{{ item.lotsAvailable }}</td>
+                    <td>{{ item.weekdayRate }}</td>
+                    <td>{{ item.weekdayMin }}</td>
+                    <td>{{ item.satdayRate }}</td>
+                    <td>{{ item.satdayMin }}</td>
+                    <td>{{ item.sunPHRate }}</td>
+                    <td>{{ item.sunPHMin }}</td>
+                    <td>{{ item.startTime }}</td>
+                    <td>{{ item.endTime }}</td>
+                    <td>{{ item.parkCapacity }}</td>
+                    <td>{{ item.monthlyRate }}</td>
+                    <td>{{ item.parkingHrs }}</td>
+                    <td>{{ item.ticketType }}</td>
+                </tr>
+
+                <p>Number of rows in combined data: {{ combinedDataCount }}</p>
+
+            </tbody>
+        </table>
+
+        <!-- table for lots
         <h2>Lots</h2>
         <table class="table">
             <thead>
@@ -41,19 +96,24 @@
                     <td>{{ lot.lotsAvailable }}</td>
                 </tr>
             </tbody>
-        </table>
+        </table> -->
 
+        <!-- table for prices
         <h2>Prices</h2>
         <table class="table">
             <thead>
                 <tr>
                     <th>PP Code</th>
+                    <th>Coordinates</th>
                     <th>PP Name</th>
                     <th>Vehicle Category</th>
+                    <th>Parking System</th>
                     <th>Weekday Rate</th>
+                    <th>Weekday Min</th>
                     <th>Saturday Rate</th>
+                    <th>Saturday Min</th>
                     <th>Sunday & PH Rate</th>
-                    <th>Coordinates</th>
+                    <th>Sunday & PH Min</th>
                     <th>Start Time</th>
                     <th>End Time</th>
                     <th>Park Capacity</th>
@@ -62,47 +122,53 @@
             <tbody>
                 <tr v-for="price in carparkData.prices" :key="price.ppCode">
                     <td>{{ price.ppCode }}</td>
+                    <td>{{ price.coordinates }}</td>
                     <td>{{ price.ppName }}</td>
                     <td>{{ price.vehCat }}</td>
+                    <td>{{ price.parkingSystem }}</td>
                     <td>{{ price.weekdayRate }}</td>
+                    <td>{{ price.weekdayMin }}</td>
                     <td>{{ price.satdayRate }}</td>
+                    <td>{{ price.satdayMin }}</td>
                     <td>{{ price.sunPHRate }}</td>
-                    <td>{{ price.coordinates }}</td>
+                    <td>{{ price.sunPHMin }}</td>
                     <td>{{ price.startTime }}</td>
                     <td>{{ price.endTime }}</td>
                     <td>{{ price.parkCapacity }}</td>
                 </tr>
             </tbody>
-        </table>
+        </table> -->
 
+        <!-- table for season
         <h2>Season</h2>
         <table class="table">
             <thead>
                 <tr>
                     <th>PP Code</th>
+                    <th>Coordinates</th>
                     <th>PP Name</th>
                     <th>Vehicle Category</th>
                     <th>Monthly Rate</th>
                     <th>Parking Hours</th>
                     <th>Ticket Type</th>
-                    <th>Coordinates</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-for="season in carparkData.season" :key="season.ppCode">
                     <td>{{ season.ppCode }}</td>
+                    <td>{{ season.coordinates }}</td>
                     <td>{{ season.ppName }}</td>
                     <td>{{ season.vehCat }}</td>
                     <td>{{ season.monthlyRate }}</td>
                     <td>{{ season.parkingHrs }}</td>
                     <td>{{ season.ticketType }}</td>
-                    <td>{{ season.coordinates }}</td>
                 </tr>
             </tbody>
-        </table>
+        </table> -->
     </div>
 
-    <script>
+    <!-- javascript for showing tables individually
+        <script>
         const { createApp } = Vue;
     
         createApp({
@@ -133,8 +199,43 @@
             }
         }).mount('#app');
         
-    </script>
+    </script> -->
         
+    <!-- javascript for showing tables together -->
+    <script>
+        const { createApp } = Vue;
+    
+        createApp({
+            data() {
+                return {
+                    combinedData: []
+                };
+            },
+            computed: {
+                combinedDataCount() {
+                    return this.combinedData.length;
+                }
+            },
+            mounted() {
+                this.fetchCarparkData();
+            },
+            methods: {
+                async fetchCarparkData() {
+                    try {
+                        console.log("Fetching carpark data...");
+                        const response = await fetch("http://localhost:5001/getAllCarparks");
+                        const data = await response.json();
+                        console.log("Data received:", data);
+                        this.combinedData = data.data;
+                    } catch (error) {
+                        console.error("Error fetching carpark data:", error);
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+
+    
     <!-- Bootstrap Javascript -->
     <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js'
         integrity='sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM'
