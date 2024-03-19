@@ -8,42 +8,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap CSS -->
-    <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css'
-        rel='stylesheet'
-        integrity='sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC'
-        crossorigin='anonymous'>
+    <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css' rel='stylesheet'
+        integrity='sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC' crossorigin='anonymous'>
 
     <!-- Vue 3 -->
     <script src='https://cdn.jsdelivr.net/npm/vue@3.0.2/dist/vue.global.js'></script>
     <!-- Vue 3: production version, optimized for size and speed -->
     <!-- <script src='https://cdn.jsdelivr.net/npm/vue@3.0.2/dist/vue.global.prod.js'></script> -->
+    <style>
+        #map {
+            height: 100vh;
+            width: calc(100% - 300px); /* Adjust width based on sidebar */
+            float: right; /* Align to the right */
+        }
 
+        #sidebar {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 300px;
+            height: 100%;
+            background-color: lightblue;
+            overflow-y: scroll;
+            display: flex; /* Use flexbox for layout */
+            flex-direction: column; /* Arrange children in a column */
+        }
+
+        /* Style for the divider line */
+        .divider {
+            border-top: 1px solid black; /* Horizontal line */
+            margin: 10px 0; /* Add some space above and below the line */
+        }
+    </style>
 </head>
-
 <body>
-    <div id="app" class="container">
-        <h1>Carpark Information</h1>
-        <div id="carpark-container">
-            <!-- Carpark data will be displayed here -->
+    <div id="sidebar">
+        <div id="app" class="container">
+            <h1>Carpark Information</h1>
+            <div id="carpark-container">
+                <!-- Carpark data will be displayed here -->
+                <input type="text" id="searchQuery" placeholder="Enter location">
+                <button id="searchBtn">Search</button>
+                <ul id="carparksList"></ul>
+            </div>
+            <div class="divider"></div> <!-- Divider line -->
+            <div id="favourites-container">
+                <!-- Favourites will be displayed here -->
+            </div>
         </div>
-        
-    </div> <!-- app: container -->
-
-
-    <div id="favourites-container" style="position:fixed; 
-    left:0; bottom: 0px; width:300px; ; border:none; padding: 10px; overflow-y: scroll; height: 200px; background-color: lightblue;">
-        <!-- Favourites will be displayed here -->
     </div>
 
+    <div id="map"></div>
 
 
     <script>
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const params = new URLSearchParams(window.location.search);
             const username = params.get('username');
 
-            if(username) {
+            if (username) {
                 console.log('Logged in as:', username);
                 fetchFavourites(username);
                 // Rest of your code...
@@ -57,7 +81,7 @@
             // Replace with the correct URL to fetch user favourites
             const url = `http://127.0.0.1:5002/users`;
             console.log('Fetch URL:', url);
-            
+
             fetch(url)
                 .then(response => {
                     console.log('Response:', response);
@@ -156,12 +180,67 @@
         function clearData() {
             document.getElementById('carpark-container').innerHTML = '';
         }
+        // JavaScript code to handle search functionality
+        document.getElementById('searchBtn').addEventListener('click', function() {
+            // Retrieve search query from input field
+            var searchQuery = document.getElementById('searchQuery').value;
+            
+            // Send search query to backend to fetch geocode
+            fetch(`http://localhost:3001/locations?location=${searchQuery}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Once coordinates are fetched, call the method to fetch car park data
+                    getCarParkData();
+                })
+                .catch(error => {
+                    console.error('Error fetching locations:', error);
+                });
+        });
+
+        function getCarParkData() {
+            // Fetch car park data from getcarpark.py
+            fetch('http://localhost:4002/data')
+                .then(response => response.json())
+                .then(data => {
+                    // Update carparks with the new data
+                    displayCarParkData(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching car park data:', error);
+                });
+        }
+
+        function displayCarParkData(carparks) {
+            var carparksList = document.getElementById('carparksList');
+            carparksList.innerHTML = ''; // Clear existing content
+            
+            carparks.forEach(carpark => {
+                var listItem = document.createElement('li');
+                listItem.innerHTML = `
+                    <div>Name: ${carpark.ppName}</div>
+                    <div>Code: ${carpark.ppCode}</div>
+                    <div>Coordinates: ${carpark.coordinates}</div>
+                    <div>Distance: ${carpark.distance.toFixed(3)} km</div>
+                    ${carpark.lotType ? `<div>Lot Type: ${carpark.lotType}</div>` : ''}
+                    ${carpark.lotsAvailable ? `<div>Lots Available: ${carpark.lotsAvailable}</div>` : ''}
+                    <div>Capacity: ${carpark.parkCapacity}</div>
+                    <div>Parking System: ${carpark.parkingSystem}</div>
+                    <div>Weekday Rate: ${carpark.weekdayRate}</div>
+                    <div>Saturday Rate: ${carpark.satdayRate}</div>
+                    <div>Sunday & Public Holiday Rate: ${carpark.sunPHRate}</div>
+                    <div>Operating Hours: ${carpark.startTime} - ${carpark.endTime}</div>
+                `;
+                carparksList.appendChild(listItem);
+            });
+        }
+
     </script>
 
-    
+
     <!-- Bootstrap Javascript -->
     <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js'
         integrity='sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM'
         crossorigin='anonymous'></script>
 </body>
+
 </html>
