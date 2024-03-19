@@ -7,7 +7,7 @@ import logging
 
 app = Flask(__name__)
 CORS(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/carpark?charset=utf8'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:3306/carpark?charset=utf8'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -304,6 +304,7 @@ def insert_carpark_season(season_data):
             db.session.add(new_season)
     db.session.commit()
 
+############# updating carpark lots API ################
 @app.route("/update_carparks_lots")
 def update_carparks_lots():
     lots_data = fetch_carpark_lots()
@@ -312,7 +313,7 @@ def update_carparks_lots():
         return jsonify({"message": "Carpark lots data updated successfully."}), 200
     else:
         return jsonify({"message": "Failed to fetch or update carpark lots data."}), 500
-    
+       #### view carpark lot data ###
 @app.route("/carparks_lots")
 def get_carparks_lots():
     lotsList = db.session.scalars(db.select(Lots)).all()
@@ -333,6 +334,7 @@ def get_carparks_lots():
         }
     ), 404
 
+############# updating carpark prices API ################
 @app.route("/update_carparks_prices")
 def update_carparks_prices():
     prices_data = fetch_carpark_prices()
@@ -341,7 +343,8 @@ def update_carparks_prices():
         return jsonify({"message": "Carpark prices updated successfully."}), 200
     else:
         return jsonify({"message": "Failed to fetch or update carpark prices."}), 500
-    
+
+    #### view carpark prices data ###
 @app.route("/carparks_prices")
 def get_carparks_prices():
     prices_list = Prices.query.all()
@@ -356,6 +359,7 @@ def get_carparks_prices():
             "message": "No carpark prices found."
         }), 404
 
+############# updating season carpark API ################
 @app.route("/update_carparks_season")
 def update_carparks_season():
     season_data = fetch_carpark_season()
@@ -364,7 +368,8 @@ def update_carparks_season():
         return jsonify({"message": "Carpark season data updated successfully."}), 200
     else:
         return jsonify({"message": "Failed to fetch or update carpark season data."}), 500
-    
+
+    #### view season carpark data ###
 @app.route("/carparks_season")
 def get_carparks_season():
     season_list = Season.query.all()
@@ -379,6 +384,7 @@ def get_carparks_season():
             "message": "No carpark season data found."
         }), 404
 
+############# updating all 3 information API ################
 @app.route("/carparks/updateAll")
 def update_all_carparks():
     update_carparks_lots()
@@ -410,7 +416,7 @@ def get_all_carparks():
             "message": "There are no carpark data."
         }
     ), 404
-
+    #### view combined carpark data ###
 @app.route("/getAllCarparks")
 def get_all():
     lotsList = db.session.scalars(db.select(Lots)).all()
@@ -450,6 +456,24 @@ def get_all():
 def get_prices_data():
     prices_data = fetch_carpark_prices()
     return jsonify({"count": len(prices_data)})
+
+
+with app.app_context():
+    db.create_all()
+
+if __name__ == '__main__':
+    app.run(port=5001, debug=True)
+
+
+
+
+
+
+
+
+
+
+
 # @app.route("/carpark/<string:carparkNo>")
 # def find_by_id(carparkNo):
 #     lotsAvailability = db.session.scalars(
@@ -510,9 +534,3 @@ def get_prices_data():
 #             "data": lotsAvailability.json()
 #         }
 #     ), 201
-
-with app.app_context():
-    db.create_all()
-
-if __name__ == '__main__':
-    app.run(port=5001, debug=True)
