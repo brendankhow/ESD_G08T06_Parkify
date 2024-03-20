@@ -309,6 +309,76 @@ def insert_carpark_season(season_data):
             db.session.add(new_season)
     db.session.commit()
 
+                                       ##### new restructure data function#######
+def restructure_carpark_data(data):
+    # Initialize a dictionary to store the restructured data
+    restructured_data = {}
+
+    # Iterate through each entry in the original data
+    for entry in data:
+        ppCode = entry['ppCode']
+        ppName = entry['ppName']
+        coordinates = entry['coordinates']
+        parkingSystem = entry['parkingSystem']
+
+        # If the ppCode is not in the restructured data, initialize its entry
+        if ppCode not in restructured_data:
+            restructured_data[ppCode] = {
+                'ppName': ppName.strip(),  # Remove extra spaces from ppName
+                'coordinates': coordinates,
+                'parkingSystem': parkingSystem,
+                'vehicles': {}
+            }
+
+        vehCat = entry['vehCat']
+        parkCapacity = entry.get('parkCapacity', None)
+
+        # If the vehicle category is not in the ppCode entry, initialize its entry
+        if vehCat not in restructured_data[ppCode]['vehicles']:
+            restructured_data[ppCode]['vehicles'][vehCat] = {
+                'parkCapacity': parkCapacity,
+                'pricing': {
+                    'startTime': [],
+                    'endTime': [],
+                    'weekdayMin': [],
+                    'weekdayRate': [],
+                    'satdayMin': [],
+                    'satdayRate': [],
+                    'sunPHMin': [],
+                    'sunPHRate': []
+                }
+            }
+
+        pricing_info = restructured_data[ppCode]['vehicles'][vehCat]['pricing']
+        pricing_info['startTime'].append(entry.get('startTime', ""))
+        pricing_info['endTime'].append(entry.get('endTime', ""))
+        pricing_info['weekdayMin'].append(entry.get('weekdayMin', ""))
+        pricing_info['weekdayRate'].append(entry.get('weekdayRate', ""))
+        pricing_info['satdayMin'].append(entry.get('satdayMin', ""))
+        pricing_info['satdayRate'].append(entry.get('satdayRate', ""))
+        pricing_info['sunPHMin'].append(entry.get('sunPHMin', ""))
+        pricing_info['sunPHRate'].append(entry.get('sunPHRate', ""))
+
+    # Convert pricing lists to match the specified order
+    for ppCode in restructured_data:
+        for vehCat in restructured_data[ppCode]['vehicles']:
+            pricing_info = restructured_data[ppCode]['vehicles'][vehCat]['pricing']
+            pricing_info = {
+                'startTime': pricing_info['startTime'],
+                'endTime': pricing_info['endTime'],
+                'weekdayMin': pricing_info['weekdayMin'],
+                'weekdayRate': pricing_info['weekdayRate'],
+                'satdayMin': pricing_info['satdayMin'],
+                'satdayRate': pricing_info['satdayRate'],
+                'sunPHMin': pricing_info['sunPHMin'],
+                'sunPHRate': pricing_info['sunPHRate']
+            }
+            restructured_data[ppCode]['vehicles'][vehCat]['pricing'] = pricing_info
+
+    return restructured_data
+
+
+
 ############# updating carpark lots API ################
 @app.route("/update_carparks_lots")
 def update_carparks_lots():
@@ -461,6 +531,20 @@ def get_all():
 def get_prices_data():
     prices_data = fetch_carpark_prices()
     return jsonify({"count": prices_data})
+
+######### new consolidated restructure data ######
+@app.route("/consolidated")
+def get_consolidated_data():
+    # Fetch data from /getAllCarparks
+    response = requests.get("http://localhost:5001/getAllCarparks")  # Adjust URL as needed
+    if response.status_code == 200:
+        carpark_data = response.json().get("data", [])
+        # Restructure the carpark data
+        restructured_data = restructure_carpark_data(carpark_data)
+        return jsonify(restructured_data), 200
+    else:
+        return jsonify({"message": "Failed to fetch carpark data from /getAllCarparks."}), 500
+
 
 
 with app.app_context():
