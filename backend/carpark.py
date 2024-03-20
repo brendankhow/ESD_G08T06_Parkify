@@ -150,10 +150,13 @@ def fetch_carpark_lots():
     }
     response = requests.get(url, headers=headers)
     if response.status_code == 200 and response.headers.get('Content-Type') == 'application/json':
-        return response.json().get("Result", [])
+        result = response.json().get("Result", [])
+        print(f"Number of lines in the result: {len(result)}")
+        return result
     else:
         logging.error(f"Failed to fetch carpark lots data, status code: {response.status_code}, response: {response.text}")
         return []
+
     
 def insert_carpark_lots(lots_data):
     for item in lots_data:
@@ -210,13 +213,15 @@ def insert_carpark_prices(prices_data):
         ppCode = item.get("ppCode")
         startTime = item.get("startTime")
         endTime = item.get("endTime")
+        vehCat=item.get("vehCat")
         # Safely handle geometries list to avoid IndexError
         geometries = item.get("geometries", [{}])  # Keep as list of dictionaries
         coordinates = geometries[0].get("coordinates", "0,0") if geometries else "0,0"
 
         if not is_db_empty:
             # Check for existing record
-            price = Prices.query.filter_by(ppCode=ppCode, startTime=startTime, endTime=endTime).first()
+            # price = Prices.query.filter_by(ppCode=ppCode, startTime=startTime, endTime=endTime).first()
+            price = Prices.query.filter_by(ppCode=ppCode, startTime=startTime, endTime=endTime, vehCat=vehCat).first()
             if price:
                 # Update existing record
                 price.weekdayMin = item.get("weekdayMin")
@@ -455,7 +460,7 @@ def get_all():
 @app.route('/get_prices_data', methods=['GET'])
 def get_prices_data():
     prices_data = fetch_carpark_prices()
-    return jsonify({"count": len(prices_data)})
+    return jsonify({"count": prices_data})
 
 
 with app.app_context():
@@ -474,63 +479,3 @@ if __name__ == '__main__':
 
 
 
-# @app.route("/carpark/<string:carparkNo>")
-# def find_by_id(carparkNo):
-#     lotsAvailability = db.session.scalars(
-#         db.select(Lots).filter_by(carparkNo=carparkNo).limit(1)
-#     ).first()
-
-#     if lotsAvailability:
-#         return jsonify(
-#             {
-#                 "code": 200,
-#                 "data": lotsAvailability.json()
-#             }
-#         )
-#     return jsonify(
-#         {
-#             "code": 404,
-#             "message": "Carpark not found."
-#         }
-#     ), 404
-    
-# # Adjust the create_carpark function to match the new data structure
-# @app.route("/carpark/<string:carparkNo>", methods=['POST'])
-# def create_carpark(carparkNo):
-#     if (db.session.scalars(
-#         db.select(Lots).filter_by(carparkNo=carparkNo).
-#         limit(1)
-#     ).first()):
-#         return jsonify(
-#             {
-#                 "code": 400,
-#                 "data": {
-#                     "carparkNo": carparkNo
-#                 },
-#                 "message": "Carpark already exists."
-#             }
-#         ), 400
-
-#     data = request.get_json()
-#     lotsAvailability = Lots(carparkNo, **data)
-
-#     try:
-#         db.session.add(lotsAvailability)
-#         db.session.commit()
-#     except:
-#         return jsonify(
-#             {
-#                 "code": 500,
-#                 "data": {
-#                     "carparkNo": carparkNo
-#                 },
-#                 "message": "An error occurred creating the carpark."
-#             }
-#         ), 500
-
-#     return jsonify(
-#         {
-#             "code": 201,
-#             "data": lotsAvailability.json()
-#         }
-#     ), 201
