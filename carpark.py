@@ -7,6 +7,7 @@ import logging
 
 app = Flask(__name__)
 CORS(app)
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:3306/carpark?charset=utf8'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/carpark'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -31,7 +32,8 @@ class Lots(db.Model):
 
 class Prices(db.Model):
     __tablename__ = 'prices'
-    ppCode = db.Column(db.String(5), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)  # New auto-incrementing ID field
+    ppCode = db.Column(db.String(5))
     weekdayMin = db.Column(db.String(10))
     weekdayRate = db.Column(db.String(10))
     parkingSystem = db.Column(db.String(1))
@@ -149,10 +151,13 @@ def fetch_carpark_lots():
     }
     response = requests.get(url, headers=headers)
     if response.status_code == 200 and response.headers.get('Content-Type') == 'application/json':
-        return response.json().get("Result", [])
+        result = response.json().get("Result", [])
+        print(f"Number of lines in the result: {len(result)}")
+        return result
     else:
         logging.error(f"Failed to fetch carpark lots data, status code: {response.status_code}, response: {response.text}")
         return []
+
     
 def insert_carpark_lots(lots_data):
     for item in lots_data:
@@ -202,47 +207,56 @@ def fetch_carpark_prices():
         return []
     
 def insert_carpark_prices(prices_data):
+    # Check if the database is empty
+    is_db_empty = Prices.query.first() is None
+
     for item in prices_data:
         ppCode = item.get("ppCode")
-        price = Prices.query.filter_by(ppCode=ppCode).first()
+        startTime = item.get("startTime")
+        endTime = item.get("endTime")
+        vehCat=item.get("vehCat")
         # Safely handle geometries list to avoid IndexError
         geometries = item.get("geometries", [{}])  # Keep as list of dictionaries
         coordinates = geometries[0].get("coordinates", "0,0") if geometries else "0,0"
 
-        if price:
-            # Update existing record
-            price.weekdayMin = item.get("weekdayMin")
-            price.weekdayRate = item.get("weekdayRate")
-            price.parkingSystem = item.get("parkingSystem")
-            price.ppName = item.get("ppName")
-            price.vehCat = item.get("vehCat")
-            price.satdayMin = item.get("satdayMin")
-            price.satdayRate = item.get("satdayRate")
-            price.sunPHMin = item.get("sunPHMin")
-            price.sunPHRate = item.get("sunPHRate")
-            price.coordinates = geometries[0].get("coordinates", "0,0") if geometries else "0,0"
-            price.startTime = item.get("startTime")
-            price.parkCapacity = item.get("parkCapacity")
-            price.endTime = item.get("endTime")
-        else:
-            # Insert new record
-            new_price = Prices(
-                ppCode=ppCode,
-                weekdayMin=item.get("weekdayMin"),
-                weekdayRate=item.get("weekdayRate"),
-                parkingSystem=item.get("parkingSystem"),
-                ppName=item.get("ppName"),
-                vehCat=item.get("vehCat"),
-                satdayMin=item.get("satdayMin"),
-                satdayRate=item.get("satdayRate"),
-                sunPHMin=item.get("sunPHMin"),
-                sunPHRate=item.get("sunPHRate"),
-                geometries=geometries,
-                startTime=item.get("startTime"),
-                parkCapacity=item.get("parkCapacity"),
-                endTime=item.get("endTime")
-            )
-            db.session.add(new_price)
+        if not is_db_empty:
+            # Check for existing record
+            # price = Prices.query.filter_by(ppCode=ppCode, startTime=startTime, endTime=endTime).first()
+            price = Prices.query.filter_by(ppCode=ppCode, startTime=startTime, endTime=endTime, vehCat=vehCat).first()
+            if price:
+                # Update existing record
+                price.weekdayMin = item.get("weekdayMin")
+                price.weekdayRate = item.get("weekdayRate")
+                price.parkingSystem = item.get("parkingSystem")
+                price.ppName = item.get("ppName")
+                price.vehCat = item.get("vehCat")
+                price.satdayMin = item.get("satdayMin")
+                price.satdayRate = item.get("satdayRate")
+                price.sunPHMin = item.get("sunPHMin")
+                price.sunPHRate = item.get("sunPHRate")
+                price.coordinates = geometries[0].get("coordinates", "0,0") if geometries else "0,0"
+                price.parkCapacity = item.get("parkCapacity")
+                continue  # Skip to the next iteration
+
+        # Insert new record
+        new_price = Prices(
+            ppCode=ppCode,
+            weekdayMin=item.get("weekdayMin"),
+            weekdayRate=item.get("weekdayRate"),
+            parkingSystem=item.get("parkingSystem"),
+            ppName=item.get("ppName"),
+            vehCat=item.get("vehCat"),
+            satdayMin=item.get("satdayMin"),
+            satdayRate=item.get("satdayRate"),
+            sunPHMin=item.get("sunPHMin"),
+            sunPHRate=item.get("sunPHRate"),
+            geometries=geometries,
+            startTime=startTime,
+            parkCapacity=item.get("parkCapacity"),
+            endTime=endTime
+        )
+        db.session.add(new_price)
+
     db.session.commit()
 
 def fetch_carpark_season():
@@ -296,6 +310,77 @@ def insert_carpark_season(season_data):
             db.session.add(new_season)
     db.session.commit()
 
+                                       ##### new restructure data function#######
+def restructure_carpark_data(data):
+    # Initialize a dictionary to store the restructured data
+    restructured_data = {}
+
+    # Iterate through each entry in the original data
+    for entry in data:
+        ppCode = entry['ppCode']
+        ppName = entry['ppName']
+        coordinates = entry['coordinates']
+        parkingSystem = entry['parkingSystem']
+
+        # If the ppCode is not in the restructured data, initialize its entry
+        if ppCode not in restructured_data:
+            restructured_data[ppCode] = {
+                'ppName': ppName.strip(),  # Remove extra spaces from ppName
+                'coordinates': coordinates,
+                'parkingSystem': parkingSystem,
+                'vehicles': {}
+            }
+
+        vehCat = entry['vehCat']
+        parkCapacity = entry.get('parkCapacity', None)
+
+        # If the vehicle category is not in the ppCode entry, initialize its entry
+        if vehCat not in restructured_data[ppCode]['vehicles']:
+            restructured_data[ppCode]['vehicles'][vehCat] = {
+                'parkCapacity': parkCapacity,
+                'pricing': {
+                    'startTime': [],
+                    'endTime': [],
+                    'weekdayMin': [],
+                    'weekdayRate': [],
+                    'satdayMin': [],
+                    'satdayRate': [],
+                    'sunPHMin': [],
+                    'sunPHRate': []
+                }
+            }
+
+        pricing_info = restructured_data[ppCode]['vehicles'][vehCat]['pricing']
+        pricing_info['startTime'].append(entry.get('startTime', ""))
+        pricing_info['endTime'].append(entry.get('endTime', ""))
+        pricing_info['weekdayMin'].append(entry.get('weekdayMin', ""))
+        pricing_info['weekdayRate'].append(entry.get('weekdayRate', ""))
+        pricing_info['satdayMin'].append(entry.get('satdayMin', ""))
+        pricing_info['satdayRate'].append(entry.get('satdayRate', ""))
+        pricing_info['sunPHMin'].append(entry.get('sunPHMin', ""))
+        pricing_info['sunPHRate'].append(entry.get('sunPHRate', ""))
+
+    # Convert pricing lists to match the specified order
+    for ppCode in restructured_data:
+        for vehCat in restructured_data[ppCode]['vehicles']:
+            pricing_info = restructured_data[ppCode]['vehicles'][vehCat]['pricing']
+            pricing_info = {
+                'startTime': pricing_info['startTime'],
+                'endTime': pricing_info['endTime'],
+                'weekdayMin': pricing_info['weekdayMin'],
+                'weekdayRate': pricing_info['weekdayRate'],
+                'satdayMin': pricing_info['satdayMin'],
+                'satdayRate': pricing_info['satdayRate'],
+                'sunPHMin': pricing_info['sunPHMin'],
+                'sunPHRate': pricing_info['sunPHRate']
+            }
+            restructured_data[ppCode]['vehicles'][vehCat]['pricing'] = pricing_info
+
+    return restructured_data
+
+
+
+############# updating carpark lots API ################
 @app.route("/update_carparks_lots")
 def update_carparks_lots():
     lots_data = fetch_carpark_lots()
@@ -304,7 +389,7 @@ def update_carparks_lots():
         return jsonify({"message": "Carpark lots data updated successfully."}), 200
     else:
         return jsonify({"message": "Failed to fetch or update carpark lots data."}), 500
-    
+       #### view carpark lot data ###
 @app.route("/carparks_lots")
 def get_carparks_lots():
     lotsList = db.session.scalars(db.select(Lots)).all()
@@ -325,6 +410,7 @@ def get_carparks_lots():
         }
     ), 404
 
+############# updating carpark prices API ################
 @app.route("/update_carparks_prices")
 def update_carparks_prices():
     prices_data = fetch_carpark_prices()
@@ -333,7 +419,8 @@ def update_carparks_prices():
         return jsonify({"message": "Carpark prices updated successfully."}), 200
     else:
         return jsonify({"message": "Failed to fetch or update carpark prices."}), 500
-    
+
+    #### view carpark prices data ###
 @app.route("/carparks_prices")
 def get_carparks_prices():
     prices_list = Prices.query.all()
@@ -348,6 +435,7 @@ def get_carparks_prices():
             "message": "No carpark prices found."
         }), 404
 
+############# updating season carpark API ################
 @app.route("/update_carparks_season")
 def update_carparks_season():
     season_data = fetch_carpark_season()
@@ -356,7 +444,8 @@ def update_carparks_season():
         return jsonify({"message": "Carpark season data updated successfully."}), 200
     else:
         return jsonify({"message": "Failed to fetch or update carpark season data."}), 500
-    
+
+    #### view season carpark data ###
 @app.route("/carparks_season")
 def get_carparks_season():
     season_list = Season.query.all()
@@ -371,6 +460,7 @@ def get_carparks_season():
             "message": "No carpark season data found."
         }), 404
 
+############# updating all 3 information API ################
 @app.route("/carparks/updateAll")
 def update_all_carparks():
     update_carparks_lots()
@@ -402,7 +492,7 @@ def get_all_carparks():
             "message": "There are no carpark data."
         }
     ), 404
-
+    #### view combined carpark data ###
 @app.route("/getAllCarparks")
 def get_all():
     lotsList = db.session.scalars(db.select(Lots)).all()
@@ -437,69 +527,40 @@ def get_all():
             "message": "There are no carpark data."
         }
     ), 404
-# @app.route("/carpark/<string:carparkNo>")
-# def find_by_id(carparkNo):
-#     lotsAvailability = db.session.scalars(
-#         db.select(Lots).filter_by(carparkNo=carparkNo).limit(1)
-#     ).first()
 
-#     if lotsAvailability:
-#         return jsonify(
-#             {
-#                 "code": 200,
-#                 "data": lotsAvailability.json()
-#             }
-#         )
-#     return jsonify(
-#         {
-#             "code": 404,
-#             "message": "Carpark not found."
-#         }
-#     ), 404
-    
-# # Adjust the create_carpark function to match the new data structure
-# @app.route("/carpark/<string:carparkNo>", methods=['POST'])
-# def create_carpark(carparkNo):
-#     if (db.session.scalars(
-#         db.select(Lots).filter_by(carparkNo=carparkNo).
-#         limit(1)
-#     ).first()):
-#         return jsonify(
-#             {
-#                 "code": 400,
-#                 "data": {
-#                     "carparkNo": carparkNo
-#                 },
-#                 "message": "Carpark already exists."
-#             }
-#         ), 400
+@app.route('/get_prices_data', methods=['GET'])
+def get_prices_data():
+    prices_data = fetch_carpark_prices()
+    return jsonify({"count": prices_data})
 
-#     data = request.get_json()
-#     lotsAvailability = Lots(carparkNo, **data)
+######### new consolidated restructure data ######
+@app.route("/consolidated")
+def get_consolidated_data():
+    # Fetch data from /getAllCarparks
+    response = requests.get("http://localhost:5001/getAllCarparks")  # Adjust URL as needed
+    if response.status_code == 200:
+        carpark_data = response.json().get("data", [])
+        # Restructure the carpark data
+        restructured_data = restructure_carpark_data(carpark_data)
+        return jsonify(restructured_data), 200
+    else:
+        return jsonify({"message": "Failed to fetch carpark data from /getAllCarparks."}), 500
 
-#     try:
-#         db.session.add(lotsAvailability)
-#         db.session.commit()
-#     except:
-#         return jsonify(
-#             {
-#                 "code": 500,
-#                 "data": {
-#                     "carparkNo": carparkNo
-#                 },
-#                 "message": "An error occurred creating the carpark."
-#             }
-#         ), 500
 
-#     return jsonify(
-#         {
-#             "code": 201,
-#             "data": lotsAvailability.json()
-#         }
-#     ), 201
 
 with app.app_context():
     db.create_all()
 
 if __name__ == '__main__':
     app.run(port=5001, debug=True)
+
+
+
+
+
+
+
+
+
+
+
