@@ -5,4 +5,5 @@ VALUES
     ('2', '2@gmail.com', 'A0004'),
     ('1', '1@gmail.com', 'A0005'),
     ('2', '2@gmail.com', 'A0005'),
-    ('1', '1@gmail.com', 'A0006');
+    ('1', '1@gmail.com', 'A0006'),
+    ('1', '1@gmail.com', 'A0007'),
