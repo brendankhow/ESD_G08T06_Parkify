@@ -128,6 +128,22 @@
 
 ///////////////////////////////////////////////////////// START OF CARPARK /////////////////////////////////////////////////////////
 
+        document.getElementById('searchBtn').addEventListener('click', function() {
+            // Retrieve search query from input field
+            var searchQuery = document.getElementById('searchQuery').value;
+            
+            // Send search query to backend to fetch geocode
+            fetch(`http://localhost:3001/locations?location=${searchQuery}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Once coordinates are fetched, call the method to fetch car park data
+                    getCarParkData();
+                })
+                .catch(error => {
+                    console.error('Error fetching locations:', error);
+                });
+        });
+
         function getCarParkData() {
             // Fetch car park data from getcarpark.py
             fetch('http://localhost:4002/data')
