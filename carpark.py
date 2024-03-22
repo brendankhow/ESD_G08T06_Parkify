@@ -7,7 +7,7 @@ import logging
 
 app = Flask(__name__)
 CORS(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:3306/carpark'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root@localhost:3306/carpark'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -437,6 +437,9 @@ def get_all():
             "message": "There are no carpark data."
         }
     ), 404
+
+
+
 # @app.route("/carpark/<string:carparkNo>")
 # def find_by_id(carparkNo):
 #     lotsAvailability = db.session.scalars(
