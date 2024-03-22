@@ -32,6 +32,7 @@ class Location(db.Model):
     def json(self):
         return {"carparkName": self.carparkName, "coordinates": self.coordinates}
 
+
 def fetch_carpark_coordinates(location):
     # Clear previous search results
     db.session.query(Location).delete()
@@ -67,6 +68,14 @@ def fetch_carpark_coordinates(location):
 def update_carpark_locations():
     fetch_carpark_coordinates()
     return jsonify({"message": "Carpark locations updated successfully."}), 200
+
+@app.route("/location")
+def get_carpark_location():
+    locations = Location.query.all()
+    if locations:
+        return jsonify({"locations": [location.json() for location in locations]})
+    else:
+        return jsonify({"message": "No carpark locations found."}), 404
 
 @app.route("/locations", methods=['GET'])
 def get_carpark_locations():

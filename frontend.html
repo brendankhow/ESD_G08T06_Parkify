@@ -18,8 +18,10 @@
     <style>
         #map {
             height: 100vh;
-            width: calc(100% - 300px); /* Adjust width based on sidebar */
-            float: right; /* Align to the right */
+            width: calc(100% - 300px);
+            /* Adjust width based on sidebar */
+            float: right;
+            /* Align to the right */
         }
 
         #sidebar {
@@ -30,17 +32,24 @@
             height: 100%;
             background-color: lightblue;
             overflow-y: scroll;
-            display: flex; /* Use flexbox for layout */
-            flex-direction: column; /* Arrange children in a column */
+            display: flex;
+            /* Use flexbox for layout */
+            flex-direction: column;
+            /* Arrange children in a column */
         }
 
         /* Style for the divider line */
         .divider {
-            border-top: 1px solid black; /* Horizontal line */
-            margin: 10px 0; /* Add some space above and below the line */
+            border-top: 1px solid black;
+            /* Horizontal line */
+            margin: 10px 0;
+            /* Add some space above and below the line */
         }
+
+      
     </style>
 </head>
+
 <body>
     <div id="sidebar">
         <div id="app" class="container">
@@ -62,6 +71,41 @@
 
 
     <script>
+        //for map
+        (g => { var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window; b = b[c] || (b[c] = {}); var d = b.maps || (b.maps = {}), r = new Set, e = new URLSearchParams, u = () => h || (h = new Promise(async (f, n) => { await (a = m.createElement("script")); e.set("libraries", [...r] + ""); for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]); e.set("callback", c + ".maps." + q); a.src = `https://maps.${c}apis.com/maps/api/js?` + e; d[q] = f; a.onerror = () => h = n(Error(p + " could not load.")); a.nonce = m.querySelector("script[nonce]")?.nonce || ""; m.head.append(a) })); d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)) })({
+            key: "AIzaSyBxIZQruMwAU2_NZmN6-TDiuBWDin-MqIc",
+            v: "weekly",
+            // Use the 'v' parameter to indicate the version to use (weekly, beta, alpha, etc.).
+            // Add other bootstrap parameters as needed, using camel case.
+        });
+        let map;
+
+        async function initMap() {
+            // The location of Uluru
+            
+            const position = { lat: 1.3007, lng: 103.8550 };
+            // Request needed libraries.
+            //@ts-ignore
+            const { Map } = await google.maps.importLibrary("maps");
+            const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+
+            // The map, the search location
+            map = new Map(document.getElementById("map"), {
+                zoom: 17,
+                center: position,
+                mapId: "DEMO_MAP_ID",
+            });
+
+            // The marker, positioned at Uluru
+            const marker = new AdvancedMarkerElement({
+                map: map,
+                position: position,
+                title: "Uluru",
+            });
+        }
+
+        initMap();
+
 
         document.addEventListener('DOMContentLoaded', function () {
             const params = new URLSearchParams(window.location.search);
@@ -181,10 +225,10 @@
             document.getElementById('carpark-container').innerHTML = '';
         }
         // JavaScript code to handle search functionality
-        document.getElementById('searchBtn').addEventListener('click', function() {
+        document.getElementById('searchBtn').addEventListener('click', function () {
             // Retrieve search query from input field
             var searchQuery = document.getElementById('searchQuery').value;
-            
+
             // Send search query to backend to fetch geocode
             fetch(`http://localhost:3001/locations?location=${searchQuery}`)
                 .then(response => response.json())
@@ -213,7 +257,7 @@
         function displayCarParkData(carparks) {
             var carparksList = document.getElementById('carparksList');
             carparksList.innerHTML = ''; // Clear existing content
-            
+
             carparks.forEach(carpark => {
                 var listItem = document.createElement('li');
                 listItem.innerHTML = `
@@ -241,6 +285,7 @@
     <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js'
         integrity='sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM'
         crossorigin='anonymous'></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
 </body>
 
 </html>
