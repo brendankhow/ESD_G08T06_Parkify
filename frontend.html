@@ -15,7 +15,8 @@
     <script src='https://cdn.jsdelivr.net/npm/vue@3.0.2/dist/vue.global.js'></script>
     <!-- Vue 3: production version, optimized for size and speed -->
     <!-- <script src='https://cdn.jsdelivr.net/npm/vue@3.0.2/dist/vue.global.prod.js'></script> -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCZWdlWHab5pByYWfhgQSxP83V2WatS3YU&callback=initMap" defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCZWdlWHab5pByYWfhgQSxP83V2WatS3YU&callback=initMap"
+        defer></script>
     <style>
         #map {
             height: 100vh;
@@ -78,6 +79,63 @@
             // Add other bootstrap parameters as needed, using camel case.
         });
         let map;
+        let mainMarker;
+
+        
+
+        function initMap(defaultPosition, additionalMarkers) {
+            try {
+                // Ensure google.maps is available
+                if (!google || !google.maps) {
+                    console.error('Google Maps API is not loaded.');
+                    return;
+                }
+
+                console.log("Initializing map at position:", defaultPosition);
+
+                // The map, centered at the extracted position
+                map = new google.maps.Map(document.getElementById("map"), {
+                    zoom: 16,
+                    center: defaultPosition,
+                    mapId: "DEMO_MAP_ID",
+                });
+
+                console.log("Map initialized.");
+
+                // Add a marker for the default position
+                mainMarker = new google.maps.Marker({
+                    position: defaultPosition,
+                    map: map,
+                    title: "Search Location" // Optional: Add a title to the marker
+                });
+
+                console.log("Default marker added to the map.");
+
+                // Add additional markers
+                if (additionalMarkers && additionalMarkers.length > 0) {
+                    additionalMarkers.forEach(marker => {
+                        new google.maps.Marker({
+                            position: marker.position,
+                            map: map,
+                            title: marker.title,
+                            icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' // Green marker icon
+                        });
+                        console.log("Additional marker added to the map.");
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error initializing map:', error);
+            }
+        }
+
+        document.getElementById('searchBtn').addEventListener('click', function () {
+            // Retrieve search query from input field
+            var searchQuery = document.getElementById('searchQuery').value;
+
+            // Update the map with new position
+            updateMapWithNewPosition(searchQuery);
+        });
 
         async function updateMapWithNewPosition(searchQuery) {
             try {
@@ -99,63 +157,44 @@
                     }
                 }
 
-                // Clear existing markers
-                if (map) {
-                    map.remove();
-                }
+                // Update main marker position
+                mainMarker.setPosition(position);
 
-                // Initialize map with new position
-                initMap(position); // Call initMap with the new position
+                // Center the map to the new position
+                map.setCenter(position);
             } catch (error) {
                 console.error('Error updating map with new position:', error);
             }
         }
 
-        function initMap(position) {
-            try {
-                // Ensure google.maps is available
-                if (!google || !google.maps) {
-                    console.error('Google Maps API is not loaded.');
-                    return;
-                }
+        // Fetch the data from localhost:4002/data
+        fetch('http://localhost:4002/data')
+            .then(response => response.json())
+            .then(data => {
+                // Extract coordinates from the data and create markers
+                const additionalMarkers = data.map(item => ({
+                    position: {
+                        lat: parseFloat(item.coordinates.split(',')[0]),
+                        lng: parseFloat(item.coordinates.split(',')[1])
+                    },
+                    title: item.ppName // Set marker title to ppName
+                }));
 
-                console.log("Initializing map at position:", position);
+                // Call initMap with default position and additional markers
+                const defaultPosition = { lat: 1.2963, lng: 103.8502 }; // Set your default position
+                initMap(defaultPosition, additionalMarkers);
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
 
-                // The map, centered at the extracted position
-                const map = new google.maps.Map(document.getElementById("map"), {
-                    zoom: 17,
-                    center: position,
-                    mapId: "DEMO_MAP_ID",
-                });
 
-                console.log("Map initialized.");
-
-                // Add a marker to the map
-                new google.maps.Marker({
-                    position: position,
-                    map: map,
-                    title: "Search Location" // Optional: Add a title to the marker
-                });
-
-                console.log("Marker added to the map.");
-            } catch (error) {
-                console.error('Error initializing map:', error);
-            }
-        }
-
-        document.getElementById('searchBtn').addEventListener('click', function () {
-            // Retrieve search query from input field
-            var searchQuery = document.getElementById('searchQuery').value;
-
-            // Update the map with new position
-            updateMapWithNewPosition(searchQuery);
-        });
-
-        // Initialize the map with a default position when the page loads
+        // Call initMap with default position and additional markers when the page loads
         document.addEventListener('DOMContentLoaded', function () {
             const defaultPosition = { lat: 1.2963, lng: 103.8502 };
-            initMap(defaultPosition);
+            initMap(defaultPosition, additionalMarkers);
         });
+
 
         function fetchFavourites(username) {
             // Replace with the correct URL to fetch user favourites
