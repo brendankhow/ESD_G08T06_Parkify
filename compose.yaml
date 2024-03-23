@@ -1,0 +1,64 @@
+version: "3.8"
+
+volumes:
+  rabbitmq_data:
+
+#followed lab for:
+  #restart for all
+  #PYTHONUNBUFFERED for all except rabbitmq
+
+#TO DO:
+# check if need to add ports? (why in lab they specify for book service but not others)
+# check if need add dbURL
+  #rmb set username to is213?instead of root? not sure how this wld work for profs
+    #i think whovever has the DB needs to create the user (see lab 3)
+services:
+  carpark:
+    build:
+      context: ./
+      dockerfile: carpark.Dockerfile
+    image: 
+    restart: always
+    environment:
+      dbURL: mysql+mysqlconnector://is213@host.docker.internal:8889/carpark
+      PYTHONUNBUFFERED: 1
+
+  getcarpark:
+    build:
+      context: ./
+      dockerfile: getcarpark.Dockerfile
+    image: 
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+
+  test:
+    build:
+      context: ./
+      dockerfile: test.Dockerfile
+    image: 
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+
+  users:
+    build:
+      context: ./
+      dockerfile: users.Dockerfile
+    image: 
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+
+#just copied and pasted frm lab. need to check values (esp. hostname, volumes)
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: esd-rabbit
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes: 
+      - ./rabbitmq.config:/etc/rabbitmq/rabbitmq.config
+      - ./rabbitmq_definitions.json:/etc/rabbitmq/rabbitmq_definitions.json
+      - rabbitmq_data:/var/lib/rabbitmq
