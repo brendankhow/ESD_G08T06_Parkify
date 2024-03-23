@@ -17,7 +17,7 @@ services:
     build:
       context: ./
       dockerfile: carpark.Dockerfile
-    image: 
+    image: liujh787/carpark:esd
     restart: always
     environment:
       dbURL: mysql+mysqlconnector://is213@host.docker.internal:8889/carpark
@@ -27,7 +27,7 @@ services:
     build:
       context: ./
       dockerfile: getcarpark.Dockerfile
-    image: 
+    image: liujh787/getcarpark:esd
     restart: always
     environment:
       PYTHONUNBUFFERED: 1
@@ -36,7 +36,7 @@ services:
     build:
       context: ./
       dockerfile: test.Dockerfile
-    image: 
+    image: liujh787/test:esd
     restart: always
     environment:
       PYTHONUNBUFFERED: 1
@@ -45,7 +45,7 @@ services:
     build:
       context: ./
       dockerfile: users.Dockerfile
-    image: 
+    image: liujh787/users:esd
     restart: always
     environment:
       PYTHONUNBUFFERED: 1
