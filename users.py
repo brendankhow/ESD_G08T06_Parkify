@@ -4,7 +4,7 @@ from flask_cors import CORS
 from sqlalchemy import create_engine, text
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/users_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:3306/users_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
@@ -18,18 +18,20 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), nullable=False)
+    phone_number = db.Column(db.String(20), nullable=False)  # New column
     favourite = db.Column(db.String(255), nullable=False)
 
-    def __init__(self, username, email, favourite):
+    def __init__(self, username, email, phone_number, favourite):
         self.username = username
         self.email = email
+        self.phone_number = phone_number
         self.favourite = favourite
 
 @app.route("/users")
 def get_all_users():
     users = User.query.order_by(User.username, User.email).all()
     if users:
-        formatted_users = [{'username': user.username, 'email': user.email, 'favourite': user.favourite} for user in users]
+        formatted_users = [{'username': user.username, 'email': user.email, 'phone_number': user.phone_number, 'favourite': user.favourite} for user in users]
         return jsonify({"code": 200, "data": {"users": formatted_users}})
     return jsonify({"code": 404, "message": "There are no users."}), 404
 
@@ -42,12 +44,11 @@ def get_user_favourites(username):
 
 if __name__ == '__main__':
     with app.app_context():
-        engine = create_engine('mysql+mysqlconnector://root:root@localhost:8889')
+        engine = create_engine('mysql+mysqlconnector://root:root@localhost:3306')
         with engine.connect() as connection:
             connection.execute(text("CREATE DATABASE IF NOT EXISTS users_db"))
             connection.execute(text("USE users_db"))
-            connection.execute(text("CREATE TABLE IF NOT EXISTS users_fav_table (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, favourite VARCHAR(255) NOT NULL)"))
-            connection.execute(text("CREATE TABLE IF NOT EXISTS users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, PRIMARY KEY (username, email))"))
+            connection.execute(text("CREATE TABLE IF NOT EXISTS users_fav_table (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, phone_number VARCHAR(20) NOT NULL, favourite VARCHAR(255) NOT NULL)"))
+            connection.execute(text("CREATE TABLE IF NOT EXISTS users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, phone_number VARCHAR(20) NOT NULL, PRIMARY KEY (username, email))"))
         db.create_all()
     app.run(host='0.0.0.0', port=5002, debug=True)
-
