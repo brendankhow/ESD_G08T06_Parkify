@@ -80,8 +80,9 @@
         });
         let map;
         let mainMarker;
+        let additionalMarkers = [];
 
-        
+
 
         function initMap(defaultPosition, additionalMarkers) {
             try {
@@ -95,7 +96,7 @@
 
                 // The map, centered at the extracted position
                 map = new google.maps.Map(document.getElementById("map"), {
-                    zoom: 16,
+                    zoom: 14,
                     center: defaultPosition,
                     mapId: "DEMO_MAP_ID",
                 });
@@ -143,7 +144,7 @@
 
                 if (searchQuery.trim() === '') {
                     // If search query is empty, set a default position
-                    position = { lat: '1.2963', lng: '103.8502' }; // Define your default latitude and longitude
+                    position = { lat: 1.2963, lng: 103.8502 }; // Default position
                 } else {
                     // If search query is not empty, fetch location data
                     const response = await fetch(`http://localhost:3001/locations?location=${searchQuery}`);
@@ -162,11 +163,46 @@
 
                 // Center the map to the new position
                 map.setCenter(position);
+
+                // Fetch new data from localhost:4002/data
+                const newDataResponse = await fetch('http://localhost:4002/data');
+                const newData = await newDataResponse.json();
+
+                // Remove existing additional markers from the map
+                additionalMarkers.forEach(marker => {
+                    marker.setMap(null);
+                });
+
+                // Clear the existing array
+                additionalMarkers = [];
+
+                // Extract coordinates from the new data and create markers
+                newData.forEach(item => {
+                    const marker = new google.maps.Marker({
+                        position: {
+                            lat: parseFloat(item.coordinates.split(',')[0]),
+                            lng: parseFloat(item.coordinates.split(',')[1])
+                        },
+                        map: map,
+                        title: item.ppName, // Set marker title to ppName
+                        icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' // Green marker icon
+                    });
+                    additionalMarkers.push(marker);
+                });
+
             } catch (error) {
                 console.error('Error updating map with new position:', error);
             }
         }
 
+        // JavaScript code to handle search functionality
+        document.getElementById('searchBtn').addEventListener('click', function () {
+            // Retrieve search query from input field
+            var searchQuery = document.getElementById('searchQuery').value;
+
+            // Update the map with new position
+            updateMapWithNewPosition(searchQuery);
+        });
         // Fetch the data from localhost:4002/data
         fetch('http://localhost:4002/data')
             .then(response => response.json())
