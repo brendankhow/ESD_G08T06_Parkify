@@ -16,10 +16,6 @@
     <!-- Vue 3: production version, optimized for size and speed -->
     <!-- <script src='https://cdn.jsdelivr.net/npm/vue@3.0.2/dist/vue.global.prod.js'></script> -->
     <style>
-        #carpark-container {
-            overflow-y: auto;
-            height: 500px;
-        }
         #map {
             height: 100vh;
             width: calc(100% - 300px); /* Adjust width based on sidebar */
@@ -37,7 +33,33 @@
             display: flex; /* Use flexbox for layout */
             flex-direction: column; /* Arrange children in a column */
         }
-
+/* *************** START OF CSS FOR carpark **************** */
+        #searchBtn {
+            margin-bottom: 10px; /* Adjust the value as needed */
+        }
+        #carpark-container {
+                    overflow-y: auto;
+                    height: 500px;
+                    margin-top: 5px;
+        }
+        .carpark-table-top {
+            font-size: 15px; /* Adjust the font size as needed */
+        }
+        .carpark-info-top {
+            max-width: 600px; /* Adjust the maximum width as needed */
+            margin: 0 auto; /* Center the div horizontally */
+            padding: 0px; /* Add padding to the div */
+            margin-bottom: 0px;
+        }
+        .carpark-table-top th,
+        .carpark-table-top td {
+            border: 1px solid black; /* Add border to table cells */
+            padding: 8px; /* Add padding for better spacing */
+        }
+        .carpark-table-top {
+            margin-bottom: 20px; /* Adjust the margin as needed */
+        }
+/* *************** END OF CSS FOR carpark **************** */
 /* *************** START OF CSS FOR FAVOURITES **************** */
 
         /* Add styles for the fixed heading */
@@ -94,10 +116,10 @@
     <div id="sidebar">
         <div id="app" class="container">
             <h1>Carpark Information</h1>
+            <input type="text" id="searchQuery" placeholder="Enter location">
+            <button id="searchBtn">Search</button>
             <div id="carpark-container">
                 <!-- Carpark data will be displayed here -->
-                <input type="text" id="searchQuery" placeholder="Enter location">
-                <button id="searchBtn">Search</button>
                 <ul id="carparksList"></ul>
             </div>
             <div class="divider"></div> <!-- Divider line -->
@@ -158,32 +180,97 @@
         }
 
         function displayCarParkData(carparks) {
-            var carparksList = document.getElementById('carparksList');
+            var carparksList = document.getElementById('carpark-container');
             carparksList.innerHTML = ''; // Clear existing content
-            
-            carparks.forEach(carpark => {
-                var listItem = document.createElement('li');
-                listItem.innerHTML = `
-                    <div>Name: ${carpark.ppName}</div>
-                    <div>Code: ${carpark.ppCode}</div>
-                    <div>Coordinates: ${carpark.coordinates}</div>
-                    <div>Distance: ${carpark.distance.toFixed(3)} km</div>
-                    ${carpark.lotType ? `<div>Lot Type: ${carpark.lotType}</div>` : ''}
-                    ${carpark.lotsAvailable ? `<div>Lots Available: ${carpark.lotsAvailable}</div>` : ''}
-                    <div>Capacity: ${carpark.parkCapacity}</div>
-                    <div>Parking System: ${carpark.parkingSystem}</div>
-                    <div>Weekday Rate: ${carpark.weekdayRate}</div>
-                    <div>Saturday Rate: ${carpark.satdayRate}</div>
-                    <div>Sunday & Public Holiday Rate: ${carpark.sunPHRate}</div>
-                    <div>Operating Hours: ${carpark.startTime} - ${carpark.endTime}</div>
-                `;
-                carparksList.appendChild(listItem);
-            });
+
+            fetch('http://127.0.0.1:5001/consolidated')
+                .then(response => response.json())
+                .then(consolidatedData => {
+                    carparks.forEach(carpark => {
+                        const carparkCode = carpark.ppCode;
+                        const carparkData = consolidatedData[carparkCode];
+                        if (carparkData) {
+                            const div = document.createElement('div');
+                            div.classList.add('carpark-info-top'); // Add a class for styling
+
+                            // Determine parking system type
+                            let parkingSystemType = '';
+                            if (carparkData.parkingSystem === 'C') {
+                                parkingSystemType = '- Coupon Parking System';
+                            } else if (carparkData.parkingSystem === 'B') {
+                                parkingSystemType = '- Electronic Parking System';
+                            }
+
+                            div.innerHTML = `
+                                <h2 class="carpark-title">${carpark.ppName} (${carpark.ppCode})</h2>
+                                <div>Distance: ${carpark.distance.toFixed(3)} km ${parkingSystemType}</div>
+                            `;
+
+                            Object.entries(carparkData.vehicles).forEach(([vehicleType, vehicleData]) => {
+                                // Add capacity information above the table
+                                const capacityInfo = document.createElement('div');
+                                capacityInfo.classList.add('capacity-info'); // Add a class for styling
+                                const capacity = vehicleData.parkCapacity;
+                                const lotsAvailable = vehicleData.lotsAvailable;
+                                capacityInfo.innerHTML = lotsAvailable !== null ?
+                                    `Capacity: ${lotsAvailable}/${capacity}` :
+                                    `Capacity: -/${capacity}`;
+                                div.appendChild(capacityInfo);
+
+                                const table = document.createElement('table');
+                                table.classList.add('carpark-table-top'); // Add the class to the table
+                                table.innerHTML = `
+                                    <thead>
+                                        <tr>
+                                            <th>${vehicleType}</th>
+                                            <th>Weekday</th>
+                                            <th>Saturday</th>
+                                            <th>Sun/PH</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${vehicleData.pricing.endTime.map((endTime, i) => {
+                                            const startTime = vehicleData.pricing.startTime[i];
+                                            const weekdayRate = vehicleData.pricing.weekdayRate[i];
+                                            const satdayRate = vehicleData.pricing.satdayRate[i];
+                                            const sunPHRate = vehicleData.pricing.sunPHRate[i];
+                                            const weekdayMin = vehicleData.pricing.weekdayMin[i];
+                                            const satdayMin = vehicleData.pricing.satdayMin[i];
+                                            const sunPHMin = vehicleData.pricing.sunPHMin[i];
+                                            if (weekdayRate !== "$0.00" || satdayRate !== "$0.00" || sunPHRate !== "$0.00") {
+                                                return `
+                                                    <tr>
+                                                        <td>${startTime} - ${endTime}</td>
+                                                        <td>${weekdayRate}/${weekdayMin}</td>
+                                                        <td>${satdayRate}/${satdayMin}</td>
+                                                        <td>${sunPHRate}/${sunPHMin}</td>
+                                                    </tr>
+                                                `;
+                                            }
+                                            return '';
+                                        }).join('')}
+                                    </tbody>
+                                `;
+                                div.appendChild(table);
+                            });
+                            carparksList.appendChild(div);
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching consolidated data:', error);
+                });
         }
+
+
+
+
+
+
 ///////////////////////////////////////////////////////// END OF CARPARK /////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////// START OF FAVOURITES /////////////////////////////////////////////////////////
-function fetchFavourites(username) {
+        function fetchFavourites(username) {
             // Replace with the correct URL to fetch user favourites
             const url = `http://127.0.0.1:5002/users`;
             console.log('Fetch URL:', url);
@@ -241,7 +328,7 @@ function fetchFavourites(username) {
                         if (carparkData) {
                             const div = document.createElement('div');
                             div.classList.add('carpark-info'); // Add a class for styling
-                            div.innerHTML = `<h2 class="carpark-title">${favourite} ${carparkData.ppName}</h2>`;
+                            div.innerHTML = `<h2 class="carpark-title">${carparkData.ppName} (${favourite})</h2>`;
                             Object.entries(carparkData.vehicles).forEach(([vehicleType, vehicleData]) => {
                                 const table = document.createElement('table');
                                 table.classList.add('carpark-table'); // Add the class to the table
