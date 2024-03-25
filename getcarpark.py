@@ -1,10 +1,8 @@
-
-
 from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from math import sin, cos, sqrt, radians, atan2
-from pyproj import Proj,transform 
+from pyproj import Proj, transform
 import pyproj
 from operator import itemgetter
 import requests
@@ -89,14 +87,16 @@ class Prices(db.Model):
             "parkCapacity": self.parkCapacity,
             "endTime": self.endTime
         }
-    
 
-
-
-
+# Convert SVY21 coordinates to WGS84 format
+def convert_coordinates_to_wgs84(coordinates):
+    svy21_crs = pyproj.CRS.from_string('EPSG:3414')
+    wgs84_crs = pyproj.CRS.from_string('EPSG:4326')
+    transformer = pyproj.Transformer.from_crs(svy21_crs, wgs84_crs)
+    lon, lat = transformer.transform(coordinates[1], coordinates[0])  # Transform (x, y) to (lon, lat)
+    return lon, lat
 
 @app.route("/data")
-
 def get_data():
     # Retrieve location data from the external API
     response = requests.get("http://localhost:5001/consolidated")
@@ -151,7 +151,7 @@ def get_data():
                 # Append the relevant data along with distance
                 carpark_info = {
                     "ppCode": ppCode,  # Use ppCode as the key
-                    "coordinates": carpark["coordinates"],
+                    "coordinates": f"{lon2},{lat2}",
                     "endTime": carpark["vehicles"]["Car"]["pricing"]["endTime"][i],  # Assumes matching index
                     "lotType": carpark.get("lotType"),
                     "lotsAvailable": carpark.get("lotsAvailable"),
