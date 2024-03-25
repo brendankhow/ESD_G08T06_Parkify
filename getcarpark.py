@@ -14,8 +14,8 @@ CORS(app)
 
 # Configure SQLAlchemy for the first database (location)
 app.config['SQLALCHEMY_BINDS'] = {
-    'location': 'mysql+mysqlconnector://root:root@localhost:3306/location',
-    'carpark': 'mysql+mysqlconnector://root:root@localhost:3306/carpark'
+    'location': 'mysql+mysqlconnector://root:root@localhost:8889/location',
+    'carpark': 'mysql+mysqlconnector://root:root@localhost:8889/carpark'
 }
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 

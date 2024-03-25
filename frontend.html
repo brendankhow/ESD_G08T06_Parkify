@@ -20,7 +20,7 @@
     <style>
         #map {
             height: 100vh;
-            width: calc(100% - 300px);
+            width: calc(100% - 500px);
             /* Adjust width based on sidebar */
             float: right;
             /* Align to the right */
@@ -296,9 +296,24 @@
             });
 
 
-        // Call initMap with default position and additional markers when the page loads
+        // // Call initMap with default position and additional markers when the page loads
+        // document.addEventListener('DOMContentLoaded', function () {
+
+        // });
+
         document.addEventListener('DOMContentLoaded', function () {
+            const params = new URLSearchParams(window.location.search);
+            const username = params.get('username');
             const defaultPosition = { lat: 1.2963, lng: 103.8502 };
+
+            if (username) {
+                console.log('Logged in as:', username);
+                fetchFavourites(username);
+                // Rest of your code...
+            } else {
+                // Redirect to the login page if no username is provided
+                window.location.href = 'login.html';
+            }
             initMap(defaultPosition, additionalMarkers);
         });
 
