@@ -4,6 +4,7 @@ from flask_cors import CORS
 from os import environ
 import requests
 import logging
+from sqlalchemy import create_engine, text
 
 app = Flask(__name__)
 CORS(app)
@@ -551,6 +552,9 @@ def get_consolidated_data():
 
 
 with app.app_context():
+    engine = create_engine('mysql+mysqlconnector://root:root@localhost:8889')
+    with engine.connect() as connection:
+        connection.execute(text("CREATE DATABASE IF NOT EXISTS carpark"))
     db.create_all()
 
 if __name__ == '__main__':
