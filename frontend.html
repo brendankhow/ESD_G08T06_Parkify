@@ -8,46 +8,305 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap CSS -->
-    <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css'
-        rel='stylesheet'
-        integrity='sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC'
-        crossorigin='anonymous'>
+    <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css' rel='stylesheet'
+        integrity='sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC' crossorigin='anonymous'>
 
     <!-- Vue 3 -->
     <script src='https://cdn.jsdelivr.net/npm/vue@3.0.2/dist/vue.global.js'></script>
     <!-- Vue 3: production version, optimized for size and speed -->
     <!-- <script src='https://cdn.jsdelivr.net/npm/vue@3.0.2/dist/vue.global.prod.js'></script> -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCZWdlWHab5pByYWfhgQSxP83V2WatS3YU&callback=initMap"
+        defer></script>
+    <style>
+        #map {
+            height: 100vh;
+            width: calc(100% - 500px);
+            /* Adjust width based on sidebar */
+            float: right;
+            /* Align to the right */
+        }
 
+        #sidebar {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 500px;
+            height: 100vh; 
+            background-color: lightblue;
+            overflow-y: scroll;
+            display: flex;
+            /* Use flexbox for layout */
+            flex-direction: column;
+            /* Arrange children in a column */
+        }
+/* *************** START OF CSS FOR carpark **************** */
+        #searchBtn {
+            margin-bottom: 10px; /* Adjust the value as needed */
+        }
+        #carpark-container {
+                    overflow-y: auto;
+                    height: 500px;
+                    margin-top: 5px;
+        }
+        .carpark-table-top {
+            font-size: 15px; /* Adjust the font size as needed */
+        }
+        .carpark-info-top {
+            max-width: 600px; /* Adjust the maximum width as needed */
+            margin: 0 auto; /* Center the div horizontally */
+            padding: 0px; /* Add padding to the div */
+            margin-bottom: 0px;
+        }
+        .carpark-table-top th,
+        .carpark-table-top td {
+            border: 1px solid black; /* Add border to table cells */
+            padding: 8px; /* Add padding for better spacing */
+        }
+        .carpark-table-top {
+            margin-bottom: 20px; /* Adjust the margin as needed */
+        }
+/* *************** END OF CSS FOR carpark **************** */
+/* *************** START OF CSS FOR FAVOURITES **************** */
+
+        /* Add styles for the fixed heading */
+        #fixed-Favcontent {
+            position: sticky;
+            top: 0; /* Stick the content to the top */
+            z-index: 1; /* Ensure it's above the scrolling content */
+            background-color: lightblue; /* Match the background color of the container */
+            padding: 0px; /* Add padding to the heading for better visibility */
+        }
+
+        /* Add styles for the scrolling content */
+        #scrolling-content {
+            padding-top: 0px; /* Ensure scrolling content starts below the fixed heading */
+        }
+        #favourites-container {
+            /* ...existing styles... */
+            overflow-y: auto; /* Enable vertical scrolling */;
+            max-height: 260px;
+            position: relative;
+        }
+        /* Style for the divider line */
+        .divider {
+            border-top: 1px solid black;
+            /* Horizontal line */
+            margin: 10px 0;
+            /* Add some space above and below the line */
+        }
+        .carpark-title {
+            font-size: 20px; /* Adjust the font size as needed */
+            font-weight: bold; /* Optionally, make the text bold */
+        }
+        /* Define a class to target the table font size */
+        .carpark-table {
+            font-size: 15px; /* Adjust the font size as needed */
+        }
+        .carpark-info {
+            max-width: 600px; /* Adjust the maximum width as needed */
+            margin: 0 auto; /* Center the div horizontally */
+            padding: 0px; /* Add padding to the div */
+            margin-bottom: 0px;
+        }
+        .carpark-table th,
+        .carpark-table td {
+            border: 1px solid black; /* Add border to table cells */
+            padding: 8px; /* Add padding for better spacing */
+        }
+        .carpark-table {
+            margin-bottom: 20px; /* Adjust the margin as needed */
+        }
+/* *************** END OF CSS FOR FAVOURITES **************** */
+
+    </style>
 </head>
 
 <body>
-    <div id="app" class="container">
-        <h1>Carpark Information</h1>
-        <div id="carpark-container">
-            <!-- Carpark data will be displayed here -->
+    <div id="sidebar">
+        <div id="app" class="container">
+            <h1>Carpark Information</h1>
+            <input type="text" id="searchQuery" placeholder="Enter location">
+            <button id="searchBtn">Search</button>
+            <div id="carpark-container">
+                <!-- Carpark data will be displayed here -->
+                <ul id="carparksList"></ul>
+            </div>
+            <div class="divider"></div> <!-- Divider line -->
+            <div id="favourites-container">
+                <!-- Favourites will be displayed here -->
+            </div>
         </div>
-        <!-- Buttons to fetch carpark and user data -->
-        <button onclick="fetchCarparkData()">See Carpark JSON</button>
-        <button onclick="fetchUserData()">See Users JSON</button>
-        <!-- Button to clear displayed data -->
-        <button onclick="clearData()">Back</button>
-    </div> <!-- app: container -->
-
-
-    <div id="favourites-container" style="position:fixed; 
-    left:0; bottom: 0px; width:300px; ; border:none; padding: 10px; overflow-y: scroll; height: 200px; background-color: lightblue;">
-        <!-- Favourites will be displayed here -->
     </div>
 
+    <div id="map"></div>
 
 
     <script>
+        //for map
+        (g => { var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window; b = b[c] || (b[c] = {}); var d = b.maps || (b.maps = {}), r = new Set, e = new URLSearchParams, u = () => h || (h = new Promise(async (f, n) => { await (a = m.createElement("script")); e.set("libraries", [...r] + ""); for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]); e.set("callback", c + ".maps." + q); a.src = `https://maps.${c}apis.com/maps/api/js?` + e; d[q] = f; a.onerror = () => h = n(Error(p + " could not load.")); a.nonce = m.querySelector("script[nonce]")?.nonce || ""; m.head.append(a) })); d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)) })({
+            key: "AIzaSyCZWdlWHab5pByYWfhgQSxP83V2WatS3YU",
+            v: "weekly",
+            // Use the 'v' parameter to indicate the version to use (weekly, beta, alpha, etc.).
+            // Add other bootstrap parameters as needed, using camel case.
+        });
+        let map;
+        let mainMarker;
+        let additionalMarkers = [];
 
-        document.addEventListener('DOMContentLoaded', function() {
+
+
+        function initMap(defaultPosition, additionalMarkers) {
+            try {
+                // Ensure google.maps is available
+                if (!google || !google.maps) {
+                    console.error('Google Maps API is not loaded.');
+                    return;
+                }
+
+                console.log("Initializing map at position:", defaultPosition);
+
+                // The map, centered at the extracted position
+                map = new google.maps.Map(document.getElementById("map"), {
+                    zoom: 14,
+                    center: defaultPosition,
+                    mapId: "DEMO_MAP_ID",
+                });
+
+                console.log("Map initialized.");
+
+                // Add a marker for the default position
+                mainMarker = new google.maps.Marker({
+                    position: defaultPosition,
+                    map: map,
+                    title: "Search Location" // Optional: Add a title to the marker
+                });
+
+                console.log("Default marker added to the map.");
+
+                // Add additional markers
+                if (additionalMarkers && additionalMarkers.length > 0) {
+                    additionalMarkers.forEach(marker => {
+                        new google.maps.Marker({
+                            position: marker.position,
+                            map: map,
+                            title: marker.title,
+                            icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' // Green marker icon
+                        });
+                        console.log("Additional marker added to the map.");
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error initializing map:', error);
+            }
+        }
+
+        document.getElementById('searchBtn').addEventListener('click', function () {
+            // Retrieve search query from input field
+            var searchQuery = document.getElementById('searchQuery').value;
+
+            // Update the map with new position
+            updateMapWithNewPosition(searchQuery);
+        });
+
+        async function updateMapWithNewPosition(searchQuery) {
+            try {
+                let position;
+
+                if (searchQuery.trim() === '') {
+                    // If search query is empty, set a default position
+                    position = { lat: 1.2963, lng: 103.8502 }; // Default position
+                } else {
+                    // If search query is not empty, fetch location data
+                    const response = await fetch(`http://localhost:3001/locations?location=${searchQuery}`);
+                    const data = await response.json();
+                    if (data.locations && data.locations.length > 0) {
+                        const coordinates = data.locations[0].coordinates.split(',');
+                        position = { lat: parseFloat(coordinates[0]), lng: parseFloat(coordinates[1]) };
+                    } else {
+                        console.error('No carpark locations found.');
+                        return;
+                    }
+                }
+
+                // Update main marker position
+                mainMarker.setPosition(position);
+
+                // Center the map to the new position
+                map.setCenter(position);
+
+                // Fetch new data from localhost:4002/data
+                const newDataResponse = await fetch('http://localhost:4002/data');
+                const newData = await newDataResponse.json();
+
+                // Remove existing additional markers from the map
+                additionalMarkers.forEach(marker => {
+                    marker.setMap(null);
+                });
+
+                // Clear the existing array
+                additionalMarkers = [];
+
+                // Extract coordinates from the new data and create markers
+                newData.forEach(item => {
+                    const marker = new google.maps.Marker({
+                        position: {
+                            lat: parseFloat(item.coordinates.split(',')[0]),
+                            lng: parseFloat(item.coordinates.split(',')[1])
+                        },
+                        map: map,
+                        title: item.ppName, // Set marker title to ppName
+                        icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' // Green marker icon
+                    });
+                    additionalMarkers.push(marker);
+                });
+
+            } catch (error) {
+                console.error('Error updating map with new position:', error);
+            }
+        }
+
+        // JavaScript code to handle search functionality
+        document.getElementById('searchBtn').addEventListener('click', function () {
+            // Retrieve search query from input field
+            var searchQuery = document.getElementById('searchQuery').value;
+
+            // Update the map with new position
+            updateMapWithNewPosition(searchQuery);
+        });
+        // Fetch the data from localhost:4002/data
+        fetch('http://localhost:4002/data')
+            .then(response => response.json())
+            .then(data => {
+                // Extract coordinates from the data and create markers
+                const additionalMarkers = data.map(item => ({
+                    position: {
+                        lat: parseFloat(item.coordinates.split(',')[0]),
+                        lng: parseFloat(item.coordinates.split(',')[1])
+                    },
+                    title: item.ppName // Set marker title to ppName
+                }));
+
+                // Call initMap with default position and additional markers
+                const defaultPosition = { lat: 1.2963, lng: 103.8502 }; // Set your default position
+                initMap(defaultPosition, additionalMarkers);
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+
+
+        // // Call initMap with default position and additional markers when the page loads
+        // document.addEventListener('DOMContentLoaded', function () {
+
+        // });
+
+        document.addEventListener('DOMContentLoaded', function () {
             const params = new URLSearchParams(window.location.search);
             const username = params.get('username');
+            const defaultPosition = { lat: 1.2963, lng: 103.8502 };
 
-            if(username) {
+            if (username) {
                 console.log('Logged in as:', username);
                 fetchFavourites(username);
                 // Rest of your code...
@@ -55,13 +314,137 @@
                 // Redirect to the login page if no username is provided
                 window.location.href = 'login.html';
             }
+            initMap(defaultPosition, additionalMarkers);
         });
 
+
+///////////////////////////////////////////////////////// START OF CARPARK /////////////////////////////////////////////////////////
+
+        document.getElementById('searchBtn').addEventListener('click', function () {
+            // Retrieve search query from input field
+            var searchQuery = document.getElementById('searchQuery').value;
+
+            // Send search query to backend to fetch geocode
+            fetch(`http://localhost:3001/locations?location=${searchQuery}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Once coordinates are fetched, call the method to fetch car park data
+                    getCarParkData();
+                })
+                .catch(error => {
+                    console.error('Error fetching locations:', error);
+                });
+        });
+
+        function getCarParkData() {
+            // Fetch car park data from getcarpark.py
+            fetch('http://localhost:4002/data')
+                .then(response => response.json())
+                .then(data => {
+                    // Update carparks with the new data
+                    displayCarParkData(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching car park data:', error);
+                });
+        }
+
+        function displayCarParkData(carparks) {
+            var carparksList = document.getElementById('carpark-container');
+            carparksList.innerHTML = ''; // Clear existing content
+
+            fetch('http://127.0.0.1:5001/consolidated')
+                .then(response => response.json())
+                .then(consolidatedData => {
+                    carparks.forEach(carpark => {
+                        const carparkCode = carpark.ppCode;
+                        const carparkData = consolidatedData[carparkCode];
+                        if (carparkData) {
+                            const div = document.createElement('div');
+                            div.classList.add('carpark-info-top'); // Add a class for styling
+
+                            // Determine parking system type
+                            let parkingSystemType = '';
+                            if (carparkData.parkingSystem === 'C') {
+                                parkingSystemType = '- Coupon Parking System';
+                            } else if (carparkData.parkingSystem === 'B') {
+                                parkingSystemType = '- Electronic Parking System';
+                            }
+
+                            div.innerHTML = `
+                                <h2 class="carpark-title">${carpark.ppName} (${carpark.ppCode})</h2>
+                                <div>Distance: ${carpark.distance.toFixed(3)} km ${parkingSystemType}</div>
+                            `;
+
+                            Object.entries(carparkData.vehicles).forEach(([vehicleType, vehicleData]) => {
+                                // Add capacity information above the table
+                                const capacityInfo = document.createElement('div');
+                                capacityInfo.classList.add('capacity-info'); // Add a class for styling
+                                const capacity = vehicleData.parkCapacity;
+                                const lotsAvailable = vehicleData.lotsAvailable;
+                                capacityInfo.innerHTML = lotsAvailable !== null ?
+                                    `Capacity: ${lotsAvailable}/${capacity}` :
+                                    `Capacity: -/${capacity}`;
+                                div.appendChild(capacityInfo);
+
+                                const table = document.createElement('table');
+                                table.classList.add('carpark-table-top'); // Add the class to the table
+                                table.innerHTML = `
+                                    <thead>
+                                        <tr>
+                                            <th>${vehicleType}</th>
+                                            <th>Weekday</th>
+                                            <th>Saturday</th>
+                                            <th>Sun/PH</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${vehicleData.pricing.endTime.map((endTime, i) => {
+                                            const startTime = vehicleData.pricing.startTime[i];
+                                            const weekdayRate = vehicleData.pricing.weekdayRate[i];
+                                            const satdayRate = vehicleData.pricing.satdayRate[i];
+                                            const sunPHRate = vehicleData.pricing.sunPHRate[i];
+                                            const weekdayMin = vehicleData.pricing.weekdayMin[i];
+                                            const satdayMin = vehicleData.pricing.satdayMin[i];
+                                            const sunPHMin = vehicleData.pricing.sunPHMin[i];
+                                            if (weekdayRate !== "$0.00" || satdayRate !== "$0.00" || sunPHRate !== "$0.00") {
+                                                return `
+                                                    <tr>
+                                                        <td>${startTime} - ${endTime}</td>
+                                                        <td>${weekdayRate}/${weekdayMin}</td>
+                                                        <td>${satdayRate}/${satdayMin}</td>
+                                                        <td>${sunPHRate}/${sunPHMin}</td>
+                                                    </tr>
+                                                `;
+                                            }
+                                            return '';
+                                        }).join('')}
+                                    </tbody>
+                                `;
+                                div.appendChild(table);
+                            });
+                            carparksList.appendChild(div);
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching consolidated data:', error);
+                });
+        }
+
+
+
+
+
+
+///////////////////////////////////////////////////////// END OF CARPARK /////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////// START OF FAVOURITES /////////////////////////////////////////////////////////
         function fetchFavourites(username) {
             // Replace with the correct URL to fetch user favourites
             const url = `http://127.0.0.1:5002/users`;
             console.log('Fetch URL:', url);
-            
+
             fetch(url)
                 .then(response => {
                     console.log('Response:', response);
@@ -74,12 +457,12 @@
                         .filter(user => user.username === username)
                         .map(user => user.favourite);
                     console.log('User favourites:', userFavourites);
-                    displayFavourites(userFavourites);
+                    displayFavourites(username, userFavourites); // Pass username to the displayFavourites function
                 })
                 .catch(error => console.error('Error fetching favourites:', error));
         }
 
-        function displayFavourites(favourites) {
+        function displayFavourites(username, favourites) {
             const container = document.getElementById('favourites-container');
             container.innerHTML = ''; // Clear existing content
 
@@ -87,85 +470,90 @@
                 container.innerHTML = '<p>No favourites available.</p>';
                 return;
             }
+            // Create and append the fixed content
+            const fixedContent = document.createElement('div');
+            fixedContent.id = 'fixed-Favcontent'; // Set the ID to fixed-Favcontent
+            const heading = document.createElement('h2');
+            heading.textContent = `${username}'s Favourites`;
+            fixedContent.appendChild(heading);
+            const divider = document.createElement('div');
+            divider.classList.add('divider');
+            fixedContent.appendChild(divider);
+            container.appendChild(fixedContent);
 
-            // If favourites is an array, create a list of items
-            const list = document.createElement('ul');
+            // Create and append the scrolling content
+            const scrollingContent = document.createElement('div');
+            scrollingContent.id = 'scrolling-content';
             favourites.forEach(favourite => {
-                const item = document.createElement('li');
-                item.textContent = favourite;
-                item.style.color = 'black'; // Set text color to black
-                list.appendChild(item);
+                // Your existing code to display favourites goes here
             });
-            container.appendChild(list);
-        }
+            container.appendChild(scrollingContent);
 
-
-
-        function fetchUserData() {
-            fetch('http://127.0.0.1:5002/users')
+            // Fetch data from the consolidated endpoint
+            fetch('http://127.0.0.1:5001/consolidated')
                 .then(response => response.json())
                 .then(data => {
-                    displayUserData(data.data.users);
+                    favourites.forEach(favourite => {
+                        const carparkData = data[favourite];
+                        if (carparkData) {
+                            const div = document.createElement('div');
+                            div.classList.add('carpark-info'); // Add a class for styling
+                            div.innerHTML = `<h2 class="carpark-title">${carparkData.ppName} (${favourite})</h2>`;
+                            Object.entries(carparkData.vehicles).forEach(([vehicleType, vehicleData]) => {
+                                const table = document.createElement('table');
+                                table.classList.add('carpark-table'); // Add the class to the table
+                                table.innerHTML = `
+                                    <thead>
+                                        <tr>
+                                            <th>${vehicleType}</th>
+                                            <th>Weekday</th>
+                                            <th>Saturday</th>
+                                            <th>Sun/PH</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${vehicleData.pricing.endTime.map((endTime, i) => {
+                                            const startTime = vehicleData.pricing.startTime[i];
+                                            const weekdayRate = vehicleData.pricing.weekdayRate[i];
+                                            const satdayRate = vehicleData.pricing.satdayRate[i];
+                                            const sunPHRate = vehicleData.pricing.sunPHRate[i];
+                                            const weekdayMin = vehicleData.pricing.weekdayMin[i];
+                                            const satdayMin = vehicleData.pricing.satdayMin[i];
+                                            const sunPHMin = vehicleData.pricing.sunPHMin[i];
+                                            if (weekdayRate !== "$0.00" || satdayRate !== "$0.00" || sunPHRate !== "$0.00") {
+                                                return `
+                                                    <tr>
+                                                        <td>${startTime} - ${endTime}</td>
+                                                        <td>${weekdayRate}/${weekdayMin}</td>
+                                                        <td>${satdayRate}/${satdayMin}</td>
+                                                        <td>${sunPHRate}/${sunPHMin}</td>
+                                                    </tr>
+                                                `;
+                                            }
+                                            return '';
+                                        }).join('')}
+                                    </tbody>
+                                `;
+                                div.appendChild(table);
+                            });
+                            container.appendChild(div);
+                        }
+                    });
                 })
-                .catch(error => console.error('Error fetching user data:', error));
+                .catch(error => console.error('Error fetching consolidated data:', error));
         }
+///////////////////////////////////////////////////////// END OF FAVOURITES /////////////////////////////////////////////////////////
 
-        function displayUserData(users) {
-            const container = document.getElementById('carpark-container');
-            container.innerHTML = ''; // Clear existing content
+        
 
-            if (!users || users.length === 0) {
-                container.innerHTML = '<p>No user data available.</p>';
-                return;
-            }
 
-            const list = document.createElement('ul');
-            users.forEach(user => {
-                const item = document.createElement('li');
-                item.textContent = `Username: ${user.username}, Email: ${user.email}, Favourite: ${user.favourite}`;
-                list.appendChild(item);
-            });
-
-            container.appendChild(list);
-        }
-
-        function fetchCarparkData() {
-            fetch('http://127.0.0.1:5001/carparks/getAll') // Ensure this URL matches your Flask app's URL and port
-                .then(response => response.json())
-                .then(data => {
-                    displayCarparkData(data.data.carparks);
-                })
-                .catch(error => console.error('Error fetching carpark data:', error));
-        }
-
-        function displayCarparkData(carparks) {
-            const container = document.getElementById('carpark-container');
-            container.innerHTML = ''; // Clear existing content
-
-            if (!carparks || carparks.length === 0) {
-                container.innerHTML = '<p>No carpark data available.</p>';
-                return;
-            }
-
-            const list = document.createElement('ul');
-            carparks.forEach(carpark => {
-                const item = document.createElement('li');
-                item.textContent = `Carpark No: ${carpark.carparkNo}, Coordinates: ${carpark.coordinates}, Lots Available: ${carpark.lotsAvailable}, Lot Type: ${carpark.lotType}`;
-                list.appendChild(item);
-            });
-
-            container.appendChild(list);
-        }
-
-        function clearData() {
-            document.getElementById('carpark-container').innerHTML = '';
-        }
     </script>
 
-    
+
     <!-- Bootstrap Javascript -->
     <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js'
         integrity='sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM'
         crossorigin='anonymous'></script>
 </body>
+
 </html>

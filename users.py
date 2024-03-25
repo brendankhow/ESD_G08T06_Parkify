@@ -28,6 +28,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), nullable=False)
+    phone_number = db.Column(db.String(20), nullable=False)  # New column
     favourite = db.Column(db.String(255), nullable=False)
     # adding a phone_number field
     phone_number = db.Column(db.String(255))  # Make sure this matches your database schema
@@ -36,6 +37,7 @@ class User(db.Model):
     def __init__(self, username, email, favourite, phone_number=None):
         self.username = username
         self.email = email
+        self.phone_number = phone_number
         self.favourite = favourite
         self.phone_number = phone_number
 
@@ -112,6 +114,12 @@ schedule_daily_notifications()
 # Register routes and start the scheduler
 if __name__ == '__main__':
     with app.app_context():
+        engine = create_engine('mysql+mysqlconnector://root:root@localhost:3306')
+        with engine.connect() as connection:
+            connection.execute(text("CREATE DATABASE IF NOT EXISTS users_db"))
+            connection.execute(text("USE users_db"))
+            connection.execute(text("CREATE TABLE IF NOT EXISTS users_fav_table (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, phone_number VARCHAR(20) NOT NULL, favourite VARCHAR(255) NOT NULL)"))
+            connection.execute(text("CREATE TABLE IF NOT EXISTS users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, phone_number VARCHAR(20) NOT NULL, PRIMARY KEY (username, email))"))
         db.create_all()
     schedule_daily_notifications()
     app.run(host='0.0.0.0', port=5002, debug=True)
