@@ -462,9 +462,7 @@ def update_all_carparks():
     db.session.commit()
     print("All carpark data updated successfully")
 
-# Wrap the function call in an application context
-with app.app_context():
-    update_all_carparks()
+
 
 @app.route("/carparks/updateAll")
 def update_all_carparks_route():
@@ -557,13 +555,12 @@ def get_consolidated_data():
 
     return jsonify(restructured_data), 200
 
-
-
 with app.app_context():
     engine = create_engine('mysql+mysqlconnector://root:root@localhost:8889')
     with engine.connect() as connection:
         connection.execute(text("CREATE DATABASE IF NOT EXISTS carpark"))
     db.create_all()
+    update_all_carparks()
 
 if __name__ == '__main__':
     app.run(port=5001, debug=True)
