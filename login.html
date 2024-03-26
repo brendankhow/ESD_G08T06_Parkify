@@ -4,16 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e9ecef;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        form {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        label {
+            color: #6c757d;
+            margin-bottom: 8px;
+            display: block;
+        }
+        input {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ced4da;
+            box-sizing: border-box;
+        }
+        input:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-    <h1>Login</h1>
     <form id="loginForm">
+        <h1>Login | Sign Up</h1>
         <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required><br><br>
+        <input type="text" id="username" name="username" required>
         <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required><br><br>
+        <input type="email" id="email" name="email" required>
         <label for="phone">Phone Number:</label>
-        <input type="tel" id="phone" name="phone" required><br><br>
+        <input type="tel" id="phone" name="phone" required>
         <button type="submit">Login</button>
     </form>
 
@@ -21,46 +78,39 @@
         document.getElementById('loginForm').addEventListener('submit', function(event) {
             event.preventDefault(); // Prevent default form submission
 
-            // Get username, email and phone values
-            const username = document.getElementById('username').value;
-            const email = document.getElementById('email').value;
-            const phone = document.getElementById('phone').value;
+            const formData = new FormData(event.target); // Use the form directly to create FormData
 
-            // Create a FormData object
-            let formData = new FormData();
-            formData.append('username', username);
-            formData.append('email', email);
-            formData.append('phone', phone);
-
-            // Send a POST request to the server-side script
             fetch('check_user.php', {
                 method: 'POST',
                 body: formData
             })
             .then(response => response.text())
-            .then(data => {
-                if (data === 'exists') {
-                    // If the user exists in the database, show an error message
-                    alert('Username/Email/Phone number already exists');
-                } else if (data === 'created') {
-                    // If a new user was created, show a message and then redirect to frontend.html
-                    alert('New user created');
-                    window.location.href = 'frontend.html?username=' + encodeURIComponent(username);
-                } else if (data === 'login') {
-                    // If the user is logging in, show a message and then redirect to frontend.html
-                    alert('Logged in successfully');
-                    window.location.href = 'frontend.html?username=' + encodeURIComponent(username);
-                } else {
-                    // If there was an error, show an error message
-                    alert('An error occurred');
-                }
-            })
-            .catch(error => console.error(error));
+            .then(handleResponse)
+            .catch(error => console.error('Error:', error));
         });
 
-        
+        function handleResponse(data) {
+            switch(data) {
+                case 'exists':
+                    alert('Username/Email/Phone number already exists');
+                    break;
+                case 'created':
+                    alert('New user created');
+                    redirectToFrontend();
+                    break;
+                case 'login':
+                    alert('Logged in successfully');
+                    redirectToFrontend();
+                    break;
+                default:
+                    alert('An error occurred');
+            }
+        }
+
+        function redirectToFrontend() {
+            const username = encodeURIComponent(document.getElementById('username').value);
+            window.location.href = `frontend.html?username=${username}`;
+        }
     </script>
-    
-    
 </body>
 </html>
