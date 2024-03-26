@@ -4,6 +4,7 @@ from flask_cors import CORS
 from os import environ
 import requests
 import logging
+from sqlalchemy import create_engine, text
 
 app = Flask(__name__)
 CORS(app)
@@ -312,9 +313,12 @@ def insert_carpark_season(season_data):
     db.session.commit()
 
                                        ##### new restructure data function#######
-def restructure_carpark_data(data):
+def restructure_carpark_data(data, lots_data):
     # Initialize a dictionary to store the restructured data
     restructured_data = {}
+
+    # Create a mapping dictionary for vehicle categories
+    vehCat_map = {"C": "Car", "M": "Motorcycle", "H": "Heavy Vehicle"}
 
     # Iterate through each entry in the original data
     for entry in data:
@@ -339,6 +343,7 @@ def restructure_carpark_data(data):
         if vehCat not in restructured_data[ppCode]['vehicles']:
             restructured_data[ppCode]['vehicles'][vehCat] = {
                 'parkCapacity': parkCapacity,
+                'lotsAvailable': None,  # Initialize lotsAvailable as None
                 'pricing': {
                     'startTime': [],
                     'endTime': [],
@@ -351,6 +356,11 @@ def restructure_carpark_data(data):
                 }
             }
 
+        # Check if the ppCode and lotType match in lots_data
+        for lot in lots_data:
+            if lot['ppCode'] == ppCode and vehCat_map.get(lot['lotType']) == vehCat:
+                restructured_data[ppCode]['vehicles'][vehCat]['lotsAvailable'] = lot['lotsAvailable']
+
         pricing_info = restructured_data[ppCode]['vehicles'][vehCat]['pricing']
         pricing_info['startTime'].append(entry.get('startTime', ""))
         pricing_info['endTime'].append(entry.get('endTime', ""))
@@ -360,22 +370,6 @@ def restructure_carpark_data(data):
         pricing_info['satdayRate'].append(entry.get('satdayRate', ""))
         pricing_info['sunPHMin'].append(entry.get('sunPHMin', ""))
         pricing_info['sunPHRate'].append(entry.get('sunPHRate', ""))
-
-    # Convert pricing lists to match the specified order
-    for ppCode in restructured_data:
-        for vehCat in restructured_data[ppCode]['vehicles']:
-            pricing_info = restructured_data[ppCode]['vehicles'][vehCat]['pricing']
-            pricing_info = {
-                'startTime': pricing_info['startTime'],
-                'endTime': pricing_info['endTime'],
-                'weekdayMin': pricing_info['weekdayMin'],
-                'weekdayRate': pricing_info['weekdayRate'],
-                'satdayMin': pricing_info['satdayMin'],
-                'satdayRate': pricing_info['satdayRate'],
-                'sunPHMin': pricing_info['sunPHMin'],
-                'sunPHRate': pricing_info['sunPHRate']
-            }
-            restructured_data[ppCode]['vehicles'][vehCat]['pricing'] = pricing_info
 
     return restructured_data
 
@@ -462,12 +456,18 @@ def get_carparks_season():
         }), 404
 
 ############# updating all 3 information API ################
-@app.route("/carparks/updateAll")
 def update_all_carparks():
     update_carparks_lots()
     update_carparks_prices()
     update_carparks_season()
     db.session.commit()
+    print("All carpark data updated successfully")
+
+
+
+@app.route("/carparks/updateAll")
+def update_all_carparks_route():
+    update_all_carparks()
     return "All carpark data updated successfully", 200
 
 @app.route("/carparks/getAll")
@@ -539,18 +539,29 @@ def get_prices_data():
 def get_consolidated_data():
     # Fetch data from /getAllCarparks
     response = requests.get("http://localhost:5001/getAllCarparks")  # Adjust URL as needed
-    if response.status_code == 200:
-        carpark_data = response.json().get("data", [])
-        # Restructure the carpark data
-        restructured_data = restructure_carpark_data(carpark_data)
-        return jsonify(restructured_data), 200
-    else:
+    if response.status_code != 200:
         return jsonify({"message": "Failed to fetch carpark data from /getAllCarparks."}), 500
 
+    carpark_data = response.json().get("data", [])
 
+    # Fetch data from /carparks_lots
+    response = requests.get("http://localhost:5001/carparks_lots")  # Adjust URL as needed
+    if response.status_code != 200:
+        return jsonify({"message": "Failed to fetch carpark lots data from /carparks_lots."}), 500
+
+    lots_data = response.json().get("data", {}).get("carparks", [])
+
+    # Restructure the carpark data
+    restructured_data = restructure_carpark_data(carpark_data, lots_data)
+
+    return jsonify(restructured_data), 200
 
 with app.app_context():
+    engine = create_engine('mysql+mysqlconnector://root:root@localhost:8889')
+    with engine.connect() as connection:
+        connection.execute(text("CREATE DATABASE IF NOT EXISTS carpark"))
     db.create_all()
+    update_all_carparks()
 
 if __name__ == '__main__':
     app.run(port=5001, debug=True)

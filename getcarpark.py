@@ -1,15 +1,13 @@
-
-
 from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from math import sin, cos, sqrt, radians, atan2
-from pyproj import Proj,transform 
+from pyproj import Proj, transform
 import pyproj
 from operator import itemgetter
 import requests
 from datetime import datetime
-
+from sqlalchemy import create_engine, text
 
 app = Flask(__name__)
 CORS(app)
@@ -19,6 +17,7 @@ app.config['SQLALCHEMY_BINDS'] = {
     'location': 'mysql+mysqlconnector://root:root@localhost:8889/location',
     'carpark': 'mysql+mysqlconnector://root:root@localhost:8889/carpark'
 }
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/location'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -89,14 +88,16 @@ class Prices(db.Model):
             "parkCapacity": self.parkCapacity,
             "endTime": self.endTime
         }
-    
 
-
-
-
+# Convert SVY21 coordinates to WGS84 format
+def convert_coordinates_to_wgs84(coordinates):
+    svy21_crs = pyproj.CRS.from_string('EPSG:3414')
+    wgs84_crs = pyproj.CRS.from_string('EPSG:4326')
+    transformer = pyproj.Transformer.from_crs(svy21_crs, wgs84_crs)
+    lon, lat = transformer.transform(coordinates[1], coordinates[0])  # Transform (x, y) to (lon, lat)
+    return lon, lat
 
 @app.route("/data")
-
 def get_data():
     # Retrieve location data from the external API
     response = requests.get("http://localhost:5001/consolidated")
@@ -151,7 +152,7 @@ def get_data():
                 # Append the relevant data along with distance
                 carpark_info = {
                     "ppCode": ppCode,  # Use ppCode as the key
-                    "coordinates": carpark["coordinates"],
+                    "coordinates": f"{lon2},{lat2}",
                     "endTime": carpark["vehicles"]["Car"]["pricing"]["endTime"][i],  # Assumes matching index
                     "lotType": carpark.get("lotType"),
                     "lotsAvailable": carpark.get("lotsAvailable"),
@@ -174,6 +175,18 @@ def get_data():
     
     return top_10_nearest
 
+
+with app.app_context():
+    engine = create_engine('mysql+mysqlconnector://root:root@localhost:8889')
+    with engine.connect() as connection:
+        connection.execute(text("CREATE DATABASE IF NOT EXISTS location"))
+    db.create_all()
+    # Insert a new record if the Location table is empty
+    if db.session.query(Location).count() == 0:  # Check if the table is empty
+        new_location = Location('singapore management university', '1.2962727,103.8501578')  # Create a new location
+        db.session.add(new_location)  # Add the new location to the session
+        db.session.commit()  # Commit the session to save the changes
+        
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=4002, debug=True)
 
