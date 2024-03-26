@@ -181,7 +181,12 @@ with app.app_context():
     with engine.connect() as connection:
         connection.execute(text("CREATE DATABASE IF NOT EXISTS location"))
     db.create_all()
-
+    # Insert a new record if the Location table is empty
+    if db.session.query(Location).count() == 0:  # Check if the table is empty
+        new_location = Location('singapore management university', '1.2962727,103.8501578')  # Create a new location
+        db.session.add(new_location)  # Add the new location to the session
+        db.session.commit()  # Commit the session to save the changes
+        
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=4002, debug=True)
 
