@@ -373,6 +373,7 @@
 
                             div.innerHTML = `
                                 <h2 class="carpark-title">${carpark.ppName} (${carpark.ppCode})</h2>
+                                <button onclick="addToFavourites('${carpark.ppCode}')">Add to Favourites</button>
                                 <div>Distance: ${carpark.distance.toFixed(3)} km ${parkingSystemType}</div>
                             `;
 
@@ -431,8 +432,45 @@
                     console.error('Error fetching consolidated data:', error);
                 });
         }
+        function addToFavourites(ppCode) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const username = urlParams.get('username');
 
+            // Fetch user details including email and phone number
+            fetch(`http://192.168.1.11:5002/registered_users`)
+                .then(response => response.json())
+                .then(data => {
+                    const user = data.data.users.find(user => user.username === username);
+                    if (user) {
+                        const { email, phone_number } = user;
+                        const favourite = ppCode;
 
+                        // Send POST request to add favourite directly to users_fav_table
+                        fetch(`http://localhost:5002/users_fav_table/${username}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                username: username,
+                                email: email,
+                                phone_number: phone_number,
+                                favourite: favourite
+                            }),
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data);
+                            // After successfully adding to favourites, update the favourites display
+                            fetchFavourites(username);
+                        })
+                        .catch(error => console.error('Error adding to favourites:', error));
+                    } else {
+                        console.error('User not found.');
+                    }
+                })
+                .catch(error => console.error('Error fetching user details:', error));
+        }
 
 
 
@@ -442,7 +480,7 @@
 ///////////////////////////////////////////////////////// START OF FAVOURITES /////////////////////////////////////////////////////////
         function fetchFavourites(username) {
             // Replace with the correct URL to fetch user favourites
-            const url = `http://127.0.0.1:5002/users`;
+            const url = `http://127.0.0.1:5002/users_fav`;
             console.log('Fetch URL:', url);
 
             fetch(url)
@@ -452,15 +490,16 @@
                 })
                 .then(data => {
                     console.log('DATA:', data);
-                    console.log('Users:', data.data.users);
-                    const userFavourites = data.data.users
-                        .filter(user => user.username === username)
-                        .map(user => user.favourite);
+                    console.log('Favourites:', data.data.favourites);
+                    const userFavourites = data.data.favourites
+                        .filter(fav => fav.username === username)
+                        .map(fav => fav.favourite);
                     console.log('User favourites:', userFavourites);
                     displayFavourites(username, userFavourites); // Pass username to the displayFavourites function
                 })
                 .catch(error => console.error('Error fetching favourites:', error));
         }
+
 
         function displayFavourites(username, favourites) {
             const container = document.getElementById('favourites-container');
@@ -484,9 +523,6 @@
             // Create and append the scrolling content
             const scrollingContent = document.createElement('div');
             scrollingContent.id = 'scrolling-content';
-            favourites.forEach(favourite => {
-                // Your existing code to display favourites goes here
-            });
             container.appendChild(scrollingContent);
 
             // Fetch data from the consolidated endpoint
@@ -498,7 +534,14 @@
                         if (carparkData) {
                             const div = document.createElement('div');
                             div.classList.add('carpark-info'); // Add a class for styling
-                            div.innerHTML = `<h2 class="carpark-title">${carparkData.ppName} (${favourite})</h2>`;
+                            div.innerHTML = `
+                                <h2 class="carpark-title" style="display: inline-block; margin-right: 30px;">
+                                    ${carparkData.ppName} (${favourite})</h2>
+                                <button onclick="removeFromFavourites('${username}', '${favourite}')" 
+                                style="display: inline-block;">Remove from Favorites</button>
+                            `;
+
+
                             Object.entries(carparkData.vehicles).forEach(([vehicleType, vehicleData]) => {
                                 const table = document.createElement('table');
                                 table.classList.add('carpark-table'); // Add the class to the table
@@ -541,6 +584,26 @@
                     });
                 })
                 .catch(error => console.error('Error fetching consolidated data:', error));
+        }
+
+        function removeFromFavourites(username, favourite) {
+            fetch(`http://localhost:5002/users_fav_table/${username}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    favourite: favourite
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // If the removal was successful, you may want to update the displayed favourites
+                // You can call fetchFavourites(username) or any other function you use to update the display
+                fetchFavourites(username);
+            })
+            .catch(error => console.error('Error removing from favourites:', error));
         }
 ///////////////////////////////////////////////////////// END OF FAVOURITES /////////////////////////////////////////////////////////
 
