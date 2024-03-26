@@ -196,6 +196,8 @@
                 console.error('Error initializing map:', error);
             }
         }
+        // Define a variable to store the last search query
+        let lastSearchQuery = '';
 
         document.getElementById('searchBtn').addEventListener('click', function () {
             // Retrieve search query from input field
@@ -207,6 +209,7 @@
 
         async function updateMapWithNewPosition(searchQuery) {
             try {
+                lastSearchQuery = searchQuery; // Store the last search query
                 let position;
 
                 if (searchQuery.trim() === '') {
@@ -243,6 +246,8 @@
                 // Clear the existing array
                 additionalMarkers = [];
 
+                const infowindow = new google.maps.InfoWindow();
+
                 // Extract coordinates from the new data and create markers
                 newData.forEach(item => {
                     const marker = new google.maps.Marker({
@@ -254,6 +259,25 @@
                         title: item.ppName, // Set marker title to ppName
                         icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' // Green marker icon
                     });
+
+                    // Define the content of the info window with enhanced styling
+                    const contentString = function(item) {
+                        return `
+                            <div style="font-family: 'Roboto', sans-serif; padding: 20px; max-width: 300px;">
+                                <div style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">${item.ppName}</div>
+                                <p style="font-size: 14px; margin-bottom: 10px;"><b>Code:</b> ${item.ppCode}</p>
+                                <a href="https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(lastSearchQuery)}&destination=${encodeURIComponent(item.ppName)}" target="_blank" style="background-color: #007bff; color: white; padding: 10px 15px; text-align: center; text-decoration: none; display: inline-block; font-size: 14px; border-radius: 5px; cursor: pointer;">View on Google Maps</a>
+                            </div>`;
+                    };
+
+                    // Add a click listener to the marker to open the info window
+                    marker.addListener('click', () => {
+                        // Update the content of the InfoWindow
+                        infowindow.setContent(contentString(item));
+                        // Open the InfoWindow on the current marker
+                        infowindow.open(map, marker);
+                    });
+
                     additionalMarkers.push(marker);
                 });
 
