@@ -39,6 +39,7 @@ class UserFavourite(db.Model):
         self.phone_number = phone_number
         self.favourite = favourite
 
+# view all registered users
 @app.route("/registered_users")
 def get_registered_users():
     users = User.query.all()
@@ -47,14 +48,7 @@ def get_registered_users():
         return jsonify({"code": 200, "data": {"users": formatted_users}})
     return jsonify({"code": 404, "message": "There are no registered users."}), 404
 
-@app.route("/users_fav_table/<username>")
-def get_user_favourites(username):
-    user_favourites = UserFavourite.query.filter_by(username=username).all()
-    if user_favourites:
-        formatted_favourites = [{'username': fav.username, 'favourite': fav.favourite} for fav in user_favourites]
-        return jsonify({"code": 200, "data": {"favourites": formatted_favourites}})
-    return jsonify({"code": 404, "message": "User not found or has no favourites."}), 404
-
+# view all user favourites in db
 @app.route("/users_fav")
 def get_all_user_favourites():
     favourites = UserFavourite.query.all()
@@ -63,6 +57,16 @@ def get_all_user_favourites():
         return jsonify({"code": 200, "data": {"favourites": formatted_favourites}})
     return jsonify({"code": 404, "message": "There are no favourites."}), 404
 
+# view a specific user favourites
+@app.route("/users_fav_table/<username>")
+def get_user_favourites(username):
+    user_favourites = UserFavourite.query.filter_by(username=username).all()
+    if user_favourites:
+        formatted_favourites = [{'username': fav.username, 'favourite': fav.favourite} for fav in user_favourites]
+        return jsonify({"code": 200, "data": {"favourites": formatted_favourites}})
+    return jsonify({"code": 404, "message": "User not found or has no favourites."}), 404
+
+# add a new favourite entry of a registered user
 @app.route("/users_fav_table/<username>", methods=['POST'])
 def add_user_favourite(username):
     data = request.json
@@ -92,6 +96,7 @@ def add_user_favourite(username):
 
     return jsonify({"code": 201, "message": "Favourite added successfully."}), 201
 
+# delete a favourite entry of a registered user
 @app.route("/users_fav_table/<username>", methods=['DELETE'])
 def remove_user_favourite(username):
     data = request.json
