@@ -7,16 +7,17 @@ import pyproj
 from operator import itemgetter
 import requests
 from datetime import datetime
-
+from sqlalchemy import create_engine, text
 
 app = Flask(__name__)
 CORS(app)
 
 # Configure SQLAlchemy for the first database (location)
 app.config['SQLALCHEMY_BINDS'] = {
-    'location': 'mysql+mysqlconnector://root:root@localhost:3306/location',
-    'carpark': 'mysql+mysqlconnector://root:root@localhost:3306/carpark'
+    'location': 'mysql+mysqlconnector://root:root@localhost:8889/location',
+    'carpark': 'mysql+mysqlconnector://root:root@localhost:8889/carpark'
 }
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/location'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -173,6 +174,13 @@ def get_data():
     top_10_nearest = sorted(filtered_carpark_data, key=lambda x: x['distance'])[:10]
     
     return top_10_nearest
+
+
+with app.app_context():
+    engine = create_engine('mysql+mysqlconnector://root:root@localhost:8889')
+    with engine.connect() as connection:
+        connection.execute(text("CREATE DATABASE IF NOT EXISTS location"))
+    db.create_all()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=4002, debug=True)
