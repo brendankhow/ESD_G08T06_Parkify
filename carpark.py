@@ -455,12 +455,20 @@ def get_carparks_season():
         }), 404
 
 ############# updating all 3 information API ################
-@app.route("/carparks/updateAll")
 def update_all_carparks():
     update_carparks_lots()
     update_carparks_prices()
     update_carparks_season()
     db.session.commit()
+    print("All carpark data updated successfully")
+
+# Wrap the function call in an application context
+with app.app_context():
+    update_all_carparks()
+
+@app.route("/carparks/updateAll")
+def update_all_carparks_route():
+    update_all_carparks()
     return "All carpark data updated successfully", 200
 
 @app.route("/carparks/getAll")
