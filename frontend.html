@@ -466,7 +466,7 @@
                         const favourite = ppCode;
 
                         // Send POST request to add favourite directly to users_fav_table
-                        fetch(`http://localhost:5002/users_fav_table/${username}`, {
+                        fetch(`http://localhost:5003/users_fav_table/${username}`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -500,7 +500,7 @@
 ///////////////////////////////////////////////////////// START OF FAVOURITES /////////////////////////////////////////////////////////
         function fetchFavourites(username) {
             // Replace with the correct URL to fetch user favourites
-            const url = `http://127.0.0.1:5002/users_fav`;
+            const url = `http://127.0.0.1:5003/users_fav`;
             console.log('Fetch URL:', url);
 
             fetch(url)
@@ -616,7 +616,7 @@
         }
 
         function removeFromFavourites(username, favourite) {
-            fetch(`http://localhost:5002/users_fav_table/${username}`, {
+            fetch(`http://localhost:5003/users_fav_table/${username}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

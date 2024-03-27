@@ -14,10 +14,10 @@ CORS(app)
 
 # Configure SQLAlchemy for the first database (location)
 app.config['SQLALCHEMY_BINDS'] = {
-    'location': 'mysql+mysqlconnector://root:root@localhost:8889/location',
-    'carpark': 'mysql+mysqlconnector://root:root@localhost:8889/carpark'
+    'location': 'mysql+mysqlconnector://root:root@localhost:3306/location',
+    'carpark': 'mysql+mysqlconnector://root:root@localhost:3306/carpark'
 }
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/location'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:3306/location'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -177,7 +177,7 @@ def get_data():
 
 
 with app.app_context():
-    engine = create_engine('mysql+mysqlconnector://root:root@localhost:8889')
+    engine = create_engine('mysql+mysqlconnector://root:root@localhost:3306')
     with engine.connect() as connection:
         connection.execute(text("CREATE DATABASE IF NOT EXISTS location"))
     db.create_all()
