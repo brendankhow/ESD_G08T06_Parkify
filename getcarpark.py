@@ -97,6 +97,8 @@ def convert_coordinates_to_wgs84(coordinates):
     lon, lat = transformer.transform(coordinates[1], coordinates[0])  # Transform (x, y) to (lon, lat)
     return lon, lat
 
+
+
 @app.route("/data")
 def get_data():
     # Retrieve location data from the external API
@@ -122,58 +124,39 @@ def get_data():
     # Create transformer
     transformer = pyproj.Transformer.from_crs(svy21_crs, wgs84_crs)
 
-    # Get the current time
-    current_time = datetime.now().strftime('%I:%M %p')
-    
     # Filter car parks based on the current time
     filtered_carpark_data = []
     for ppCode, carpark in carpark_data.items():  # Iterate over each car park
-        # Check if "Car" exists in the "vehicles" dictionary
-        if "Car" in carpark.get("vehicles", {}):
-            coordinates = (float(carpark["coordinates"].split(',')[0]), float(carpark["coordinates"].split(',')[1]))
-            longitude2 = coordinates[0]
-            latitude2 = coordinates[1]
-            lon2, lat2 = transformer.transform(latitude2, longitude2)
-            radlon2 = radians(lon2)
-            radlat2 = radians(lat2)
-            dlon = radlon2 - lon1 
-            dlat = radlat2 - lat1
-            a = sin(dlat / 2)**2 + cos(lat1) * cos(radlat2) * sin(dlon / 2)**2
-            c = 2 * atan2(sqrt(a), sqrt(1 - a))
-            distance = c * 6371.0
-            
-            # Convert start times to comparable format and check if current time falls within the range
-            start_times = [datetime.strptime(time, "%I.%M %p") for time in carpark["vehicles"]["Car"]["pricing"]["startTime"]]
-            for i, start_time in enumerate(start_times):
-                # Adjust for times spanning midnight
-                if i > 0 and start_times[i] < start_times[i-1]:
-                    start_times[i] = start_times[i].replace(day=start_times[i].day + 1)
-            if any(start_time <= datetime.strptime(current_time, "%I:%M %p") <= end_time for start_time, end_time in zip(start_times, start_times[1:] + [start_times[0]])):
-                # Append the relevant data along with distance
-                carpark_info = {
-                    "ppCode": ppCode,  # Use ppCode as the key
-                    "coordinates": f"{lon2},{lat2}",
-                    "endTime": carpark["vehicles"]["Car"]["pricing"]["endTime"][i],  # Assumes matching index
-                    "lotType": carpark.get("lotType"),
-                    "lotsAvailable": carpark.get("lotsAvailable"),
-                    "parkCapacity": carpark["vehicles"]["Car"]["parkCapacity"],
-                    "parkingSystem": carpark["parkingSystem"],
-                    "ppName": carpark["ppName"],
-                    "satdayMin": carpark["vehicles"]["Car"]["pricing"]["satdayMin"][i],  # Assumes matching index
-                    "satdayRate": carpark["vehicles"]["Car"]["pricing"]["satdayRate"][i],  # Assumes matching index
-                    "startTime": carpark["vehicles"]["Car"]["pricing"]["startTime"][i],  # Assumes matching index
-                    "sunPHMin": carpark["vehicles"]["Car"]["pricing"]["sunPHMin"][i],  # Assumes matching index
-                    "sunPHRate": carpark["vehicles"]["Car"]["pricing"]["sunPHRate"][i],  # Assumes matching index
-                    "weekdayMin": carpark["vehicles"]["Car"]["pricing"]["weekdayMin"][i],  # Assumes matching index
-                    "weekdayRate": carpark["vehicles"]["Car"]["pricing"]["weekdayRate"][i],  # Assumes matching index
-                    "distance": distance
-                }
-                filtered_carpark_data.append(carpark_info)
+        coordinates = (float(carpark["coordinates"].split(',')[0]), float(carpark["coordinates"].split(',')[1]))
+        longitude2 = coordinates[0]
+        latitude2 = coordinates[1]
+        lon2, lat2 = transformer.transform(latitude2, longitude2)
+        radlon2 = radians(lon2)
+        radlat2 = radians(lat2)
+        dlon = radlon2 - lon1 
+        dlat = radlat2 - lat1
+        a = sin(dlat / 2)**2 + cos(lat1) * cos(radlat2) * sin(dlon / 2)**2
+        c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        distance = c * 6371.0
+
+        # Append the relevant data along with distance
+        carpark_info = {
+            "ppCode": ppCode,  # Use ppCode as the key
+            "coordinates": f"{lon2},{lat2}",
+            "ppName": carpark["ppName"],
+            "distance": distance
+        }
+        filtered_carpark_data.append(carpark_info)
     
     # Sort car parks by distance and return the top 10 nearest ones
     top_10_nearest = sorted(filtered_carpark_data, key=lambda x: x['distance'])[:10]
     
     return top_10_nearest
+
+
+
+
+
 
 
 with app.app_context():
