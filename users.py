@@ -23,6 +23,7 @@ class User(db.Model):
         self.email = email
         self.phone_number = phone_number
 
+
 @app.route("/registered_users")
 def get_registered_users():
     users = User.query.all()
