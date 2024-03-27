@@ -3,13 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from sqlalchemy import create_engine, text
 
-# users.py - Add these imports at the top
-from sms_service import send_sms
-# scheduler
-from apscheduler.schedulers.background import BackgroundScheduler
-from datetime import datetime, timedelta
-from requests import get
-import requests
+
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/users_db'
@@ -110,48 +105,7 @@ def remove_user_favourite(username):
 
     return jsonify({"code": 200, "message": "Favourite removed successfully."}), 200
 
-# Modify your existing notify_users function
-@app.route("/notify_users")
-# This function will be triggered by the scheduler every day at 10 AM
-def notify_users():
-    with app.app_context():
-        # Get all carparks details first
-        response = requests.get('http://localhost:5001/getAllCarparks')
-        if response.status_code != 200:
-            print("Error fetching carpark details")
-            return
-        all_carparks_data = response.json()['data']
-        
-        users = UserFavourite.query.all()
-        for user in users:
-            if user.phone_number and user.favourite:
-                fav_carparks = user.favourite.split(',')
-                messages = []
 
-                # Match user's favorite carparks with the ones in the all_carparks_data
-                for fav in fav_carparks:
-                    carpark_details = next((item for item in all_carparks_data if item['ppCode'] == fav), None)
-                    if carpark_details:
-                        message = (f"Carpark {carpark_details['ppCode']}: Available - {carpark_details.get('lotsAvailable', 'N/A')}, "
-                                f"Rate - {carpark_details.get('weekdayRate', 'N/A')} from {carpark_details.get('startTime', 'N/A')} "
-                                f"to {carpark_details.get('endTime', 'N/A')}")
-                        messages.append(message)
-                    else:
-                        messages.append(f"Carpark {fav} details not found.")
-
-                # Send a single SMS with all favorites information
-                send_sms(user.phone_number, " ".join(messages))
-
-# Create a scheduled job to notify users
-def schedule_daily_notifications():
-    scheduler = BackgroundScheduler()
-    # scheduler.add_job(func=notify_users, trigger="cron", hour=10)
-    # for testing if scheduler works NOW rather than wait for 10am
-    scheduler.add_job(func=notify_users, trigger='date', run_date=datetime.now() + timedelta(seconds=30))  # to run 30 seconds from now
-    scheduler.start()
-
-# Call this function somewhere in your users.py file to start the scheduler
-schedule_daily_notifications()
 
 
 # Register routes and start the scheduler
@@ -164,6 +118,6 @@ if __name__ == '__main__':
             connection.execute(text("CREATE TABLE IF NOT EXISTS users_fav_table (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, phone_number VARCHAR(20) NOT NULL, favourite VARCHAR(255) NOT NULL)"))
             connection.execute(text("CREATE TABLE IF NOT EXISTS users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, phone_number VARCHAR(20) NOT NULL, PRIMARY KEY (username, email))"))
         db.create_all()
-    schedule_daily_notifications()
+
     app.run(host='0.0.0.0', port=5003, debug=True)
 
