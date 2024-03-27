@@ -4,7 +4,7 @@ from flask_cors import CORS
 from sqlalchemy import create_engine, text
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:3306/users_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/users_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
@@ -88,7 +88,7 @@ def remove_user_favourite(username):
 
 if __name__ == '__main__':
     with app.app_context():
-        engine = create_engine('mysql+mysqlconnector://root:root@localhost:3306')
+        engine = create_engine('mysql+mysqlconnector://root:root@localhost:8889')
         with engine.connect() as connection:
             connection.execute(text("CREATE DATABASE IF NOT EXISTS users_db"))
             connection.execute(text("USE users_db"))
