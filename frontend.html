@@ -156,6 +156,16 @@
             background-color: #f4f4f4;
             padding: 0px; /* Add padding to the heading for better visibility */
             }
+            #loadingModal {
+                display: none;
+                align-items: center;
+                justify-content: center;
+                background-color: rgba(0,0,0,0.5);
+                display: none;
+            }
+            #loadingImage {
+                max-width: 300px;
+            }
         </style>
 </head>
 
@@ -178,6 +188,17 @@
 
     <div id="map"></div>
 
+    <!-- Loading Modal -->
+    <!-- <div id="loadingModal" class="modal" tabindex="-1" role="dialog">
+        <img id="loadingImage" src="parkify.gif">
+    </div> -->
+    <div id="loadingModal" class="modal" tabindex="-1" role="dialog">
+        <video id="loadingVideo" autoplay loop muted style="max-width: 270px;">
+            <source src="parkify.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
     <script>
         //for map
         (g => { var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window; b = b[c] || (b[c] = {}); var d = b.maps || (b.maps = {}), r = new Set, e = new URLSearchParams, u = () => h || (h = new Promise(async (f, n) => { await (a = m.createElement("script")); e.set("libraries", [...r] + ""); for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]); e.set("callback", c + ".maps." + q); a.src = `https://maps.${c}apis.com/maps/api/js?` + e; d[q] = f; a.onerror = () => h = n(Error(p + " could not load.")); a.nonce = m.querySelector("script[nonce]")?.nonce || ""; m.head.append(a) })); d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)) })({
@@ -189,6 +210,29 @@
         let map;
         let mainMarker;
         let additionalMarkers = [];
+
+        document.getElementById('searchBtn').addEventListener('click', function () {
+            var searchQuery = document.getElementById('searchQuery').value;
+            if (!searchQuery) {
+                alert('Please enter a location');
+                return;
+            }
+
+            // Show the loading modal
+            document.getElementById('loadingModal').style.display = 'flex';
+
+            // Play the video
+            var video = document.getElementById('loadingVideo');
+            video.load(); // This will reload the video
+            video.play(); // This will play the video
+
+            // Hide the loading modal after 2 seconds
+            setTimeout(function() {
+                document.getElementById('loadingModal').style.display = 'none';
+            }, 1500);
+
+            // Existing code for handling the click event...
+        });
 
         function initMap(defaultPosition, additionalMarkers) {
             try {
@@ -411,6 +455,8 @@
                 })
                 .catch(error => {
                     console.error('Error fetching car park data:', error);
+                    alert('Location does not exist. Please enter the correct location.');
+                    document.getElementById('searchQuery').value = '';
                 });
         }
 
