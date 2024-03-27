@@ -214,7 +214,7 @@
         document.getElementById('searchBtn').addEventListener('click', function () {
             var searchQuery = document.getElementById('searchQuery').value;
             if (!searchQuery) {
-                alert('Please enter a search query');
+                alert('Please enter a location');
                 return;
             }
 
@@ -455,6 +455,8 @@
                 })
                 .catch(error => {
                     console.error('Error fetching car park data:', error);
+                    alert('Location does not exist. Please enter the correct location.');
+                    document.getElementById('searchQuery').value = '';
                 });
         }
 
