@@ -38,45 +38,65 @@ class UserFavourite(db.Model):
         self.phone_number = phone_number
         self.favourite = favourite
 
-# Modify your existing notify_users function
+# Define a flag to indicate whether the notify_users function is currently running
+notify_users_running = False
+
 @app.route("/notify_users")
-# This function will be triggered by the scheduler every day at 10 AM
+def trigger_notify_users():
+    global notify_users_running
+    # Check if notify_users is already running
+    if notify_users_running:
+        return jsonify({"message": "notify_users is already running"}), 400
+    # Set the flag to indicate that notify_users is running
+    notify_users_running = True
+    # Execute the notify_users function
+    message, status_code = notify_users()
+    # Reset the flag after execution
+    notify_users_running = False
+    return message, status_code
+
 def notify_users():
     with app.app_context():
-        # Get all carparks details first
-        response = requests.get('http://localhost:5001/getAllCarparks')
+        response = requests.get('http://localhost:5001/consolidated')
         if response.status_code != 200:
             print("Error fetching carpark details")
-            return
-        all_carparks_data = response.json()['data']
-        
+            return jsonify({"message": "Error fetching carpark details"}), 500
+        consolidated_data = response.json()
+
         users = UserFavourite.query.all()
         for user in users:
             if user.phone_number and user.favourite:
                 fav_carparks = user.favourite.split(',')
                 messages = []
 
-                # Match user's favorite carparks with the ones in the all_carparks_data
                 for fav in fav_carparks:
-                    carpark_details = next((item for item in all_carparks_data if item['ppCode'] == fav), None)
+                    carpark_details = consolidated_data.get(fav)
                     if carpark_details:
-                        message = (f"Carpark {carpark_details['ppCode']}: Available - {carpark_details.get('lotsAvailable', 'N/A')}, "
-                                f"Rate - {carpark_details.get('weekdayRate', 'N/A')} from {carpark_details.get('startTime', 'N/A')} "
-                                f"to {carpark_details.get('endTime', 'N/A')}")
-                        messages.append(message)
+                        car_details = carpark_details.get('vehicles', {}).get('Car', {})
+                        lots_available = car_details.get('lotsAvailable', 'N/A')
+                        pricing = car_details.get('pricing', {})
+                        start_times = pricing.get('startTime', [])
+                        end_times = pricing.get('endTime', [])
+                        rates = pricing.get('weekdayRate', [])
+
+                        if len(start_times) == len(end_times) == len(rates):
+                            message = f"Carpark {fav}: Available - {lots_available}, Rates:\n"
+                            for i in range(len(start_times)):
+                                message += f"{start_times[i]} to {end_times[i]} - {rates[i]}\n"
+                            messages.append(message)
+                        else:
+                            messages.append(f"Carpark {fav} details not found.")
                     else:
                         messages.append(f"Carpark {fav} details not found.")
 
-                # Send a single SMS with all favorites information
-                send_sms(user.phone_number, " ".join(messages))
+                send_sms(user.phone_number, "\n".join(messages))
+        return jsonify({"message": "SMS notifications sent successfully"}), 200
 
-# Create a scheduled job to notify users
 def schedule_daily_notifications():
     scheduler = BackgroundScheduler()
-    # scheduler.add_job(func=notify_users, trigger="cron", hour=10)
-    # for testing if scheduler works NOW rather than wait for 10am
-    scheduler.add_job(func=notify_users, trigger='date', run_date=datetime.now() + timedelta(seconds=30))  # to run 30 seconds from now
+    scheduler.add_job(func=trigger_notify_users, trigger='cron', hour=10)
     scheduler.start()
+
 def send_sms(to, message):
     client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
     client.messages.create(
@@ -85,11 +105,6 @@ def send_sms(to, message):
         body=message
     )
 
-# Call this function somewhere in your users.py file to start the scheduler
-schedule_daily_notifications()
-
-
-# Register routes and start the scheduler
 if __name__ == '__main__':
     with app.app_context():
         engine = create_engine('mysql+mysqlconnector://root:root@localhost:8889')
@@ -101,4 +116,3 @@ if __name__ == '__main__':
         db.create_all()
     schedule_daily_notifications()
     app.run(host='0.0.0.0', port=5004, debug=True)
-
