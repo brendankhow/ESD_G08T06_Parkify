@@ -464,7 +464,7 @@
             var carparksList = document.getElementById('carpark-container');
             carparksList.innerHTML = ''; // Clear existing content
 
-            fetch('http://127.0.0.1:5001/consolidated')
+            fetch('http://localhost:5001/consolidated')
                 .then(response => response.json())
                 .then(consolidatedData => {
                     carparks.forEach(carpark => {

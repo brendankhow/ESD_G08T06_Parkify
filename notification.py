@@ -64,14 +64,13 @@ def trigger_notify_users():
 def notify_users():
     with app.app_context():
          # Use invoke_http to fetch carpark details
-        response = invoke_http(carpark_URL, method='GET')
-        
-        # Check if the request was successful
-        if response['code'] != 200:
-            print("Error fetching carpark details")
-            return jsonify({"message": "Error fetching carpark details"}), 500
-        consolidated_data = response['data']  # Assuming the response structure has a 'data' key with the required information
+        response = requests.get(carpark_URL)
+        if response.status_code != 200:
+            # Handle the case where the request fails
+            return jsonify({"error": "Failed to retrieve data from the external API"}), 500
 
+        consolidated_data = response.json()  # Access the list of car park data
+        
         users = UserFavourite.query.all()
         for user in users:
             if user.phone_number and user.favourite:

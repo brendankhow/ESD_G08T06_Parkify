@@ -10,6 +10,7 @@ from datetime import datetime
 from sqlalchemy import create_engine, text
 from os import environ
 from invokes import invoke_http
+import json
 
 app = Flask(__name__)
 CORS(app)
@@ -37,13 +38,12 @@ class Location(db.Model):
 def get_data():
     # Retrieve location data from the external API
     # Retrieve location data from the external API using invoke_http
-    response = invoke_http(carpark_URL, method='GET')
-    # Check if the request was successful
-    if response['code'] != 200:
+    response = requests.get(carpark_URL)
+    if response.status_code != 200:
         # Handle the case where the request fails
         return jsonify({"error": "Failed to retrieve data from the external API"}), 500
 
-    carpark_data = response['data']  # Assuming the response structure has a 'data' key with the required information
+    carpark_data = response.json()  # Access the list of car park data
     
     # Extracting coordinates directly
     # Retrieve specific columns from the Location table
