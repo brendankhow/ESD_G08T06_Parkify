@@ -5,6 +5,7 @@ from sqlalchemy import create_engine, text
 from os import environ
 from invokes import invoke_http
 # scheduler
+import pytz
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 from requests import get
@@ -102,7 +103,8 @@ def notify_users():
 
 def schedule_daily_notifications():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(func=trigger_notify_users, trigger='cron', hour=10)
+    # scheduler.add_job(func=trigger_notify_users, trigger='cron', hour=10)
+    scheduler.add_job(func=trigger_notify_users, trigger='cron', hour=10, timezone=pytz.timezone('Asia/Singapore'))
     scheduler.start()
 
 def send_sms(to, message):
