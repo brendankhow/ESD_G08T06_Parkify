@@ -8,7 +8,7 @@ volumes:
   #PYTHONUNBUFFERED for all except rabbitmq
 
 #TO DO:
-# check if need to add ports? (why in lab they specify for book service but not others)
+# check if need to add ports? (add for those exposed to ui)
 # check if need add dbURL
   #rmb set username to is213?instead of root? not sure how this wld work for profs
     #i think whovever has the DB needs to create the user (see lab 3)
@@ -29,15 +29,7 @@ services:
       dockerfile: getcarpark.Dockerfile
     image: liujh787/getcarpark:esd
     restart: always
-    environment:
-      PYTHONUNBUFFERED: 1
-
-  test:
-    build:
-      context: ./
-      dockerfile: test.Dockerfile
-    image: liujh787/test:esd
-    restart: always
+    ports: "4002:4002"
     environment:
       PYTHONUNBUFFERED: 1
 
@@ -50,7 +42,36 @@ services:
     environment:
       PYTHONUNBUFFERED: 1
 
+  favourites:
+    build:
+      context: ./
+      dockerfile: favourites.Dockerfile
+    image: liujh787/favourites:esd
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+
+  geocode:
+    build:
+      context: ./
+      dockerfile: geocode.Dockerfile
+    image: liujh787/geocode:esd
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+
+  sms_service:
+    build:
+      context: ./
+      dockerfile: sms_service.Dockerfile
+    image: liujh787/sms_service:esd
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+
 #just copied and pasted frm lab. need to check values (esp. hostname, volumes)
+#rmb to stop (and/or remove) the previous rabbitmq-mgmt container before running
+    # docker compose up to avoid ports conflicts
   rabbitmq:
     image: rabbitmq:3-management
     hostname: esd-rabbit

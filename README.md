@@ -1,7 +1,7 @@
 # esd-group6
 What to do before running:
 1) change port number to mamp port number
-2) create carpaprk db in mysql
+2) create carpark db in mysql
 
 To run the file: run python3 carpark.py
 
