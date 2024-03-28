@@ -9,7 +9,8 @@ from sqlalchemy import create_engine, text
 app = Flask(__name__)
 CORS(app)
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:3306/carpark?charset=utf8'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/carpark'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/carpark'
+app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -536,19 +537,23 @@ def get_prices_data():
 ######### new consolidated restructure data ######
 @app.route("/consolidated")
 def get_consolidated_data():
-    # Fetch data from /getAllCarparks
-    response = requests.get("http://localhost:5001/getAllCarparks")  # Adjust URL as needed
-    if response.status_code != 200:
+    # Directly call get_all function and get its response data
+    combinedData_response = get_all()
+    combinedData_json = combinedData_response.get_json()
+
+    if combinedData_json['code'] != 200:
         return jsonify({"message": "Failed to fetch carpark data from /getAllCarparks."}), 500
 
-    carpark_data = response.json().get("data", [])
+    carpark_data = combinedData_json.get("data", [])
 
     # Fetch data from /carparks_lots
-    response = requests.get("http://localhost:5001/carparks_lots")  # Adjust URL as needed
-    if response.status_code != 200:
+    lots_response = get_carparks_lots()
+    lots_json = lots_response.get_json()
+
+    if lots_json['code'] != 200:
         return jsonify({"message": "Failed to fetch carpark lots data from /carparks_lots."}), 500
 
-    lots_data = response.json().get("data", {}).get("carparks", [])
+    lots_data = lots_json.get("data", {}).get("carparks", [])
 
     # Restructure the carpark data
     restructured_data = restructure_carpark_data(carpark_data, lots_data)
@@ -556,14 +561,14 @@ def get_consolidated_data():
     return jsonify(restructured_data), 200
 
 with app.app_context():
-    engine = create_engine('mysql+mysqlconnector://root:root@localhost:8889')
+    engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
     with engine.connect() as connection:
         connection.execute(text("CREATE DATABASE IF NOT EXISTS carpark"))
     db.create_all()
     update_all_carparks()
 
 if __name__ == '__main__':
-    app.run(port=5001, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)
 
 
 
