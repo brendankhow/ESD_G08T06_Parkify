@@ -12,7 +12,7 @@ from requests import get
 import requests
 
 from twilio.rest import Client
-from config import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/users_db'
@@ -23,6 +23,12 @@ db = SQLAlchemy(app)
 
 CORS(app)
 
+
+
+# Twilio settings
+TWILIO_ACCOUNT_SID = 'AC4c2f5867563167ee03c132d8ca8086fb'
+TWILIO_AUTH_TOKEN = '87044ecdb00c7cfd9ac8edc1f013656f'
+TWILIO_PHONE_NUMBER = '+15642242132'
 class UserFavourite(db.Model):
     __tablename__ = 'users_fav_table'
 
