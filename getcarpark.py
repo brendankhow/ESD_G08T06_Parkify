@@ -14,12 +14,6 @@ from invokes import invoke_http
 app = Flask(__name__)
 CORS(app)
 
-# Configure SQLAlchemy for the first database (location)
-app.config['SQLALCHEMY_BINDS'] = {
-    'location': 'mysql+mysqlconnector://root:root@localhost:8889/location',
-    'carpark': 'mysql+mysqlconnector://root:root@localhost:8889/carpark'
-}
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/location'
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -27,7 +21,6 @@ carpark_URL = environ.get('carpark_URL') or "http://localhost:5001/consolidated"
 
 db = SQLAlchemy(app)
 class Location(db.Model):
-    __bind_key__ = 'location'
     __tablename__ = 'location'
 
     carparkName = db.Column(db.String(100), primary_key=True)
@@ -39,72 +32,12 @@ class Location(db.Model):
 
     def json(self):
         return {"carparkName": self.carparkName, "coordinates": self.coordinates}
-class Prices(db.Model):
-    __bind_key__ = 'carpark'
-    __tablename__ = 'prices'
-    ppCode = db.Column(db.String(5), primary_key=True)
-    weekdayMin = db.Column(db.String(10))
-    weekdayRate = db.Column(db.String(10))
-    parkingSystem = db.Column(db.String(1))
-    ppName = db.Column(db.String(50))
-    vehCat = db.Column(db.String(20))
-    satdayMin = db.Column(db.String(10))
-    satdayRate = db.Column(db.String(10))
-    sunPHMin = db.Column(db.String(10))
-    sunPHRate = db.Column(db.String(10))
-    coordinates = db.Column(db.String(50))
-    startTime = db.Column(db.String(10))
-    parkCapacity = db.Column(db.Integer)
-    endTime = db.Column(db.String(10))
-
-    def __init__(self, ppCode, weekdayMin, weekdayRate, parkingSystem, ppName, vehCat, satdayMin, satdayRate, sunPHMin, sunPHRate, geometries, startTime, parkCapacity, endTime):
-        self.ppCode = ppCode
-        self.weekdayMin = weekdayMin
-        self.weekdayRate = weekdayRate
-        self.parkingSystem = parkingSystem
-        self.ppName = ppName
-        self.vehCat = vehCat
-        self.satdayMin = satdayMin
-        self.satdayRate = satdayRate
-        self.sunPHMin = sunPHMin
-        self.sunPHRate = sunPHRate
-        self.coordinates = geometries[0].get('coordinates', '0,0') if geometries else '0,0'
-        self.startTime = startTime
-        self.parkCapacity = parkCapacity
-        self.endTime = endTime
-
-    def json(self):
-        return {
-            "ppCode": self.ppCode,
-            "weekdayMin": self.weekdayMin,
-            "weekdayRate": self.weekdayRate,
-            "parkingSystem": self.parkingSystem,
-            "ppName": self.ppName,
-            "vehCat": self.vehCat,
-            "satdayMin": self.satdayMin,
-            "satdayRate": self.satdayRate,
-            "sunPHMin": self.sunPHMin,
-            "sunPHRate": self.sunPHRate,
-            "coordinates": self.coordinates,
-            "startTime": self.startTime,
-            "parkCapacity": self.parkCapacity,
-            "endTime": self.endTime
-        }
-
-# Convert SVY21 coordinates to WGS84 format
-def convert_coordinates_to_wgs84(coordinates):
-    svy21_crs = pyproj.CRS.from_string('EPSG:3414')
-    wgs84_crs = pyproj.CRS.from_string('EPSG:4326')
-    transformer = pyproj.Transformer.from_crs(svy21_crs, wgs84_crs)
-    lon, lat = transformer.transform(coordinates[1], coordinates[0])  # Transform (x, y) to (lon, lat)
-    return lon, lat
 
 @app.route("/data")
 def get_data():
     # Retrieve location data from the external API
     # Retrieve location data from the external API using invoke_http
     response = invoke_http(carpark_URL, method='GET')
-    
     # Check if the request was successful
     if response['code'] != 200:
         # Handle the case where the request fails
