@@ -8,6 +8,8 @@ from operator import itemgetter
 import requests
 from datetime import datetime
 from sqlalchemy import create_engine, text
+from os import environ
+from invokes import invoke_http
 
 app = Flask(__name__)
 CORS(app)
@@ -17,11 +19,13 @@ app.config['SQLALCHEMY_BINDS'] = {
     'location': 'mysql+mysqlconnector://root:root@localhost:8889/location',
     'carpark': 'mysql+mysqlconnector://root:root@localhost:8889/carpark'
 }
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/location'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/location'
+app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
+carpark_URL = environ.get('carpark_URL') or "http://localhost:5001/consolidated"
 
+db = SQLAlchemy(app)
 class Location(db.Model):
     __bind_key__ = 'location'
     __tablename__ = 'location'
@@ -35,8 +39,6 @@ class Location(db.Model):
 
     def json(self):
         return {"carparkName": self.carparkName, "coordinates": self.coordinates}
-
-
 class Prices(db.Model):
     __bind_key__ = 'carpark'
     __tablename__ = 'prices'
@@ -97,17 +99,18 @@ def convert_coordinates_to_wgs84(coordinates):
     lon, lat = transformer.transform(coordinates[1], coordinates[0])  # Transform (x, y) to (lon, lat)
     return lon, lat
 
-
-
 @app.route("/data")
 def get_data():
     # Retrieve location data from the external API
-    response = requests.get("http://localhost:5001/consolidated")
-    if response.status_code != 200:
+    # Retrieve location data from the external API using invoke_http
+    response = invoke_http(carpark_URL, method='GET')
+    
+    # Check if the request was successful
+    if response['code'] != 200:
         # Handle the case where the request fails
         return jsonify({"error": "Failed to retrieve data from the external API"}), 500
 
-    carpark_data = response.json()  # Access the list of car park data
+    carpark_data = response['data']  # Assuming the response structure has a 'data' key with the required information
     
     # Extracting coordinates directly
     # Retrieve specific columns from the Location table
@@ -153,14 +156,8 @@ def get_data():
     
     return top_10_nearest
 
-
-
-
-
-
-
 with app.app_context():
-    engine = create_engine('mysql+mysqlconnector://root:root@localhost:8889')
+    engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
     with engine.connect() as connection:
         connection.execute(text("CREATE DATABASE IF NOT EXISTS location"))
     db.create_all()

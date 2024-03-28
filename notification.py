@@ -2,9 +2,8 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from sqlalchemy import create_engine, text
-
-
-
+from os import environ
+from invokes import invoke_http
 # scheduler
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
@@ -13,17 +12,17 @@ import requests
 
 from twilio.rest import Client
 
-
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/users_db'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:8889/users_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
+
+carpark_URL = environ.get('carpark_URL') or "http://localhost:5001/consolidated"
 
 db = SQLAlchemy(app)
 
 CORS(app)
-
-
 
 # Twilio settings
 TWILIO_ACCOUNT_SID = 'AC4c2f5867563167ee03c132d8ca8086fb'
@@ -63,11 +62,14 @@ def trigger_notify_users():
 
 def notify_users():
     with app.app_context():
-        response = requests.get('http://localhost:5001/consolidated')
-        if response.status_code != 200:
+         # Use invoke_http to fetch carpark details
+        response = invoke_http(carpark_URL, method='GET')
+        
+        # Check if the request was successful
+        if response['code'] != 200:
             print("Error fetching carpark details")
             return jsonify({"message": "Error fetching carpark details"}), 500
-        consolidated_data = response.json()
+        consolidated_data = response['data']  # Assuming the response structure has a 'data' key with the required information
 
         users = UserFavourite.query.all()
         for user in users:
@@ -113,7 +115,7 @@ def send_sms(to, message):
 
 if __name__ == '__main__':
     with app.app_context():
-        engine = create_engine('mysql+mysqlconnector://root:root@localhost:8889')
+        engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
         with engine.connect() as connection:
             connection.execute(text("CREATE DATABASE IF NOT EXISTS users_db"))
             connection.execute(text("USE users_db"))

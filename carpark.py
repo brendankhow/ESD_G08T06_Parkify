@@ -463,8 +463,6 @@ def update_all_carparks():
     db.session.commit()
     print("All carpark data updated successfully")
 
-
-
 @app.route("/carparks/updateAll")
 def update_all_carparks_route():
     update_all_carparks()
