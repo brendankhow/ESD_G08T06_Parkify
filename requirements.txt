@@ -4,4 +4,4 @@ mysql-connector-python==8.3.0
 requests==2.31.0
 flask_cors==3.0.10
 pyproj==3.6.1
-invokes==0.3.1
+googlemaps==4.5.3
