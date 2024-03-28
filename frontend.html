@@ -17,113 +17,161 @@
     <!-- <script src='https://cdn.jsdelivr.net/npm/vue@3.0.2/dist/vue.global.prod.js'></script> -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCZWdlWHab5pByYWfhgQSxP83V2WatS3YU&callback=initMap"
         defer></script>
-    <style>
-        #map {
-            height: 100vh;
-            width: calc(100% - 500px);
-            /* Adjust width based on sidebar */
-            float: right;
-            /* Align to the right */
-        }
+        <style>
+            body {
+                font-family: 'Segoe UI', Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: #f4f4f4;
+            }
+            /* *************** CSS FOR map **************** */
+            #map {
+                height: 100vh;
+                width: calc(100% - 500px);
+                float: right;
+            }
+            /* *************** CSS FOR sidebar **************** */
+            #sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 500px;
+                height: 100vh;
+                background: linear-gradient(to bottom, #ffffff 0%, #e9eef2 100%);
+                box-shadow: 4px 0 10px rgba(0,0,0,0.15);
+                padding: 20px;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                box-shadow: 4px 0 15px rgba(0,0,0,0.2);
 
-        #sidebar {
-            position: fixed;
-            left: 0;
-            bottom: 0;
-            width: 500px;
-            height: 100vh; 
-            background-color: lightblue;
-            overflow-y: scroll;
-            display: flex;
-            /* Use flexbox for layout */
-            flex-direction: column;
-            /* Arrange children in a column */
-        }
-/* *************** START OF CSS FOR carpark **************** */
-        #searchBtn {
-            margin-bottom: 10px; /* Adjust the value as needed */
-        }
-        #carpark-container {
-                    overflow-y: auto;
-                    height: 500px;
-                    margin-top: 5px;
-        }
-        .carpark-table-top {
-            font-size: 15px; /* Adjust the font size as needed */
-        }
-        .carpark-info-top {
-            max-width: 600px; /* Adjust the maximum width as needed */
-            margin: 0 auto; /* Center the div horizontally */
-            padding: 0px; /* Add padding to the div */
-            margin-bottom: 0px;
-        }
-        .carpark-table-top th,
-        .carpark-table-top td {
-            border: 1px solid black; /* Add border to table cells */
-            padding: 8px; /* Add padding for better spacing */
-        }
-        .carpark-table-top {
-            margin-bottom: 20px; /* Adjust the margin as needed */
-        }
-/* *************** END OF CSS FOR carpark **************** */
-/* *************** START OF CSS FOR FAVOURITES **************** */
-
-        /* Add styles for the fixed heading */
-        #fixed-Favcontent {
+            }
+            h1 {
+                font-size: 26px;
+                margin-bottom: 20px;
+                color: #333;
+                text-align: center;
+                font-weight: 600;
+            }
+            /* *************** CSS FOR search bar **************** */
+            #searchQuery {
+                padding: 12px;
+                margin-bottom: 15px;
+                border: 2px solid #ccc;
+                border-radius: 8px;
+                width: calc(100% - 24px);
+                font-size: 16px;
+                box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            }
+            #searchQuery:focus {
+                border-color: #007bff;
+                box-shadow: inset 0 1px 3px rgba(0,0,0,0.2), 0 0 8px rgba(0,123,255,.5);
+            }
+            #searchBtn {
+                background-color: #007bff;
+                color: white;
+                padding: 12px 20px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: 500;
+                transition: background-color 0.3s ease;
+                margin-bottom: 10px;
+            }
+            #searchBtn:hover {
+                background-color: #0056b3;
+            }
+            /* *************** CSS FOR remove from fav button **************** */
+            .addBtn, .removeBtn {
+                background-color: #007bff;
+                color: white;
+                padding: 12px 20px;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: 500;
+                transition: background-color 0.3s ease;
+                margin-bottom: 20px;
+            }
+            .addBtn:hover, .removeBtn:hover {
+                background-color: #0056b3;
+            }
+            /* *************** CSS FOR add/remove from favourite button **************** */
+            .divider {
+                border-top: 2px solid #eee;
+                margin: 20px 0;
+            }
+            /* *************** CSS FOR carpark container **************** */
+            .carpark-info, .carpark-info-top {
+                background-color: #ffffff;
+                padding: 20px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                /* overflow-y: auto;
+                max-height: 260px;
+                position: relative; */
+            }
+            .carpark-info:hover, .carpark-info-top:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            }
+            .carpark-title {
+                font-size: 20px;
+                margin-bottom: 15px;
+                color: #333;
+                font-weight: 600;
+            }
+            .carpark-table, .carpark-table-top {
+                width: 100%;
+                margin-bottom: 20px;
+                border-collapse: collapse;
+            }
+            .carpark-table th, .carpark-table td, .carpark-table-top th, .carpark-table-top td {
+                border: 1px solid #ddd;
+                padding: 10px;
+                text-align: left;
+                font-size: 14px;
+            }
+            .carpark-table th, .carpark-table-top th {
+                background-color: #f8f8f8;
+                font-weight: 600;
+            }
+            #carpark-container {
+                overflow-y: auto;
+                height: 40vh;
+            }
+            /* *************** CSS FOR favourite container **************** */
+            #favourites-container {
+                overflow-y: auto; /* Enable vertical scrolling */;
+                max-height: 30vh;
+            }
+            #fixed-Favcontent {
             position: sticky;
             top: 0; /* Stick the content to the top */
             z-index: 1; /* Ensure it's above the scrolling content */
-            background-color: lightblue; /* Match the background color of the container */
+            background-color: #f4f4f4;
             padding: 0px; /* Add padding to the heading for better visibility */
-        }
-
-        /* Add styles for the scrolling content */
-        #scrolling-content {
-            padding-top: 0px; /* Ensure scrolling content starts below the fixed heading */
-        }
-        #favourites-container {
-            /* ...existing styles... */
-            overflow-y: auto; /* Enable vertical scrolling */;
-            max-height: 260px;
-            position: relative;
-        }
-        /* Style for the divider line */
-        .divider {
-            border-top: 1px solid black;
-            /* Horizontal line */
-            margin: 10px 0;
-            /* Add some space above and below the line */
-        }
-        .carpark-title {
-            font-size: 20px; /* Adjust the font size as needed */
-            font-weight: bold; /* Optionally, make the text bold */
-        }
-        /* Define a class to target the table font size */
-        .carpark-table {
-            font-size: 15px; /* Adjust the font size as needed */
-        }
-        .carpark-info {
-            max-width: 600px; /* Adjust the maximum width as needed */
-            margin: 0 auto; /* Center the div horizontally */
-            padding: 0px; /* Add padding to the div */
-            margin-bottom: 0px;
-        }
-        .carpark-table th,
-        .carpark-table td {
-            border: 1px solid black; /* Add border to table cells */
-            padding: 8px; /* Add padding for better spacing */
-        }
-        .carpark-table {
-            margin-bottom: 20px; /* Adjust the margin as needed */
-        }
-/* *************** END OF CSS FOR FAVOURITES **************** */
-
-    </style>
+            }
+            #loadingModal {
+                display: none;
+                align-items: center;
+                justify-content: center;
+                background-color: rgba(0,0,0,0.5);
+                display: none;
+            }
+            #loadingImage {
+                max-width: 300px;
+            }
+        </style>
 </head>
 
 <body>
     <div id="sidebar">
-        <div id="app" class="container">
+        <div id="app">
             <h1>Carpark Information</h1>
             <input type="text" id="searchQuery" placeholder="Enter location">
             <button id="searchBtn">Search</button>
@@ -140,6 +188,17 @@
 
     <div id="map"></div>
 
+    <!-- Loading Modal -->
+    <!-- <div id="loadingModal" class="modal" tabindex="-1" role="dialog">
+        <img id="loadingImage" src="parkify.gif">
+    </div> -->
+    <div id="loadingModal" class="modal" tabindex="-1" role="dialog">
+        <video id="loadingVideo" autoplay loop muted style="max-width: 270px;">
+            <source src="parkify.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
     <script>
         //for map
         (g => { var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window; b = b[c] || (b[c] = {}); var d = b.maps || (b.maps = {}), r = new Set, e = new URLSearchParams, u = () => h || (h = new Promise(async (f, n) => { await (a = m.createElement("script")); e.set("libraries", [...r] + ""); for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]); e.set("callback", c + ".maps." + q); a.src = `https://maps.${c}apis.com/maps/api/js?` + e; d[q] = f; a.onerror = () => h = n(Error(p + " could not load.")); a.nonce = m.querySelector("script[nonce]")?.nonce || ""; m.head.append(a) })); d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)) })({
@@ -151,6 +210,29 @@
         let map;
         let mainMarker;
         let additionalMarkers = [];
+
+        document.getElementById('searchBtn').addEventListener('click', function () {
+            var searchQuery = document.getElementById('searchQuery').value;
+            if (!searchQuery) {
+                alert('Please enter a location');
+                return;
+            }
+
+            // Show the loading modal
+            document.getElementById('loadingModal').style.display = 'flex';
+
+            // Play the video
+            var video = document.getElementById('loadingVideo');
+            video.load(); // This will reload the video
+            video.play(); // This will play the video
+
+            // Hide the loading modal after 2 seconds
+            setTimeout(function() {
+                document.getElementById('loadingModal').style.display = 'none';
+            }, 1500);
+
+            // Existing code for handling the click event...
+        });
 
         function initMap(defaultPosition, additionalMarkers) {
             try {
@@ -259,13 +341,20 @@
                         title: item.ppName, // Set marker title to ppName
                         icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png' // Green marker icon
                     });
-
+                    let parkingSystemType = '';
+                            if (item.parkingSystem === 'C') {
+                                parkingSystemType = 'Coupon Parking System';
+                            } else if (item.parkingSystem === 'B') {
+                                parkingSystemType = 'Electronic Parking System';
+                            }
                     // Define the content of the info window with enhanced styling
                     const contentString = function(item) {
                         return `
                             <div style="font-family: 'Roboto', sans-serif; padding: 20px; max-width: 300px;">
                                 <div style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">${item.ppName}</div>
                                 <p style="font-size: 14px; margin-bottom: 10px;"><b>Code:</b> ${item.ppCode}</p>
+                                <p style="font-size: 14px; margin-bottom: 10px;"><b>Distance:</b> ${item.distance.toFixed(3)} km</p>
+                                <p style="font-size: 14px; margin-bottom: 10px;"><b>Parking System:</b> ${parkingSystemType}</p>
                                 <a href="https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(lastSearchQuery)}&destination=${encodeURIComponent(item.ppName)}" target="_blank" style="background-color: #007bff; color: white; padding: 10px 15px; text-align: center; text-decoration: none; display: inline-block; font-size: 14px; border-radius: 5px; cursor: pointer;">View on Google Maps</a>
                             </div>`;
                     };
@@ -366,6 +455,8 @@
                 })
                 .catch(error => {
                     console.error('Error fetching car park data:', error);
+                    alert('Location does not exist. Please enter the correct location.');
+                    document.getElementById('searchQuery').value = '';
                 });
         }
 
@@ -393,7 +484,7 @@
 
                             div.innerHTML = `
                                 <h2 class="carpark-title">${carpark.ppName} (${carpark.ppCode})</h2>
-                                <button onclick="addToFavourites('${carpark.ppCode}')">Add to Favourites</button>
+                                <button onclick="addToFavourites('${carpark.ppCode}')" class="addBtn" style="display: inline-block;">Add to Favourites</button>
                                 <div>Distance: ${carpark.distance.toFixed(3)} km ${parkingSystemType}</div>
                             `;
 
@@ -466,7 +557,7 @@
                         const favourite = ppCode;
 
                         // Send POST request to add favourite directly to users_fav_table
-                        fetch(`http://localhost:5002/users_fav_table/${username}`, {
+                        fetch(`http://localhost:5003/users_fav_table/${username}`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -491,16 +582,12 @@
                 })
                 .catch(error => console.error('Error fetching user details:', error));
         }
-
-
-
-
 ///////////////////////////////////////////////////////// END OF CARPARK /////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////// START OF FAVOURITES /////////////////////////////////////////////////////////
         function fetchFavourites(username) {
             // Replace with the correct URL to fetch user favourites
-            const url = `http://127.0.0.1:5002/users_fav`;
+            const url = `http://127.0.0.1:5003/users_fav`;
             console.log('Fetch URL:', url);
 
             fetch(url)
@@ -527,8 +614,6 @@
                 })
                 .catch(error => console.error('Error fetching favourites:', error));
         }
-
-
 
         function displayFavourites(username, favourites) {
             const container = document.getElementById('favourites-container');
@@ -567,9 +652,8 @@
                                 <h2 class="carpark-title" style="display: inline-block; margin-right: 30px;">
                                     ${carparkData.ppName} (${favourite})</h2>
                                 <button onclick="removeFromFavourites('${username}', '${favourite}')" 
-                                style="display: inline-block;">Remove from Favorites</button>
+                                class="removeBtn" style="display: inline-block;">Remove from Favorites</button>
                             `;
-
 
                             Object.entries(carparkData.vehicles).forEach(([vehicleType, vehicleData]) => {
                                 const table = document.createElement('table');
@@ -616,7 +700,7 @@
         }
 
         function removeFromFavourites(username, favourite) {
-            fetch(`http://localhost:5002/users_fav_table/${username}`, {
+            fetch(`http://localhost:5003/users_fav_table/${username}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

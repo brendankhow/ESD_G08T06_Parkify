@@ -1,9 +1,12 @@
+<!-- 
+///////////////////////////////////////////////////////// IMPROVED CSS CODE /////////////////////////////////////////////////////////
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Login | Sign Up</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -60,9 +63,21 @@
         button:hover {
             background-color: #0056b3;
         }
+        #loadingModal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body>
+    <img src="parkify.png" alt="Parkify">
     <form id="loginForm">
         <h1>Login | Sign Up</h1>
         <label for="username">Username:</label>
@@ -71,13 +86,32 @@
         <input type="email" id="email" name="email" required>
         <label for="phone">Phone Number:</label>
         <input type="tel" id="phone" name="phone" required>
-        <button type="submit">Login</button>
+        <button id="loginBtn" type="submit">Login</button>
     </form>
+
+    <div id="loadingModal" class="modal" tabindex="-1" role="dialog">
+        <video id="loadingVideo" autoplay loop muted style="max-width: 270px;">
+            <source src="parkify.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
 
     <script>
         document.getElementById('loginForm').addEventListener('submit', function(event) {
             event.preventDefault(); // Prevent default form submission
+            
+            // Show the loading modal
+            document.getElementById('loadingModal').style.display = 'flex';
 
+            // Play the video
+            var video = document.getElementById('loadingVideo');
+            video.load(); // This will reload the video
+            video.play(); // This will play the video
+            // Hide the loading modal after 2 seconds
+            setTimeout(function() {
+                document.getElementById('loadingModal').style.display = 'none';
+            }, 2000);
+            
             const formData = new FormData(event.target); // Use the form directly to create FormData
 
             fetch('check_user.php', {
@@ -108,9 +142,13 @@
         }
 
         function redirectToFrontend() {
-            const username = encodeURIComponent(document.getElementById('username').value);
-            window.location.href = `frontend.html?username=${username}`;
+            setTimeout(function() {
+                const username = encodeURIComponent(document.getElementById('username').value);
+                window.location.href = `frontend.html?username=${username}`;
+            }, 1000);
         }
     </script>
 </body>
 </html>
+
+
