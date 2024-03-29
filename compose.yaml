@@ -12,7 +12,7 @@ services:
     image: brendankhow/carpark:1.0
     restart: always
     environment:
-      dbURL: mysql+mysqlconnector://root:root@host.docker.internal:8889/carpark
+      dbURL: mysql+mysqlconnector://root:root@host.docker.internal:3306/carpark
       PYTHONUNBUFFERED: 1
     ports:
       - "5001:5001"
@@ -27,7 +27,7 @@ services:
     image: brendankhow/favourites:1.0
     restart: always
     environment:
-      dbURL: mysql+mysqlconnector://root:root@host.docker.internal:8889/users_db
+      dbURL: mysql+mysqlconnector://root:root@host.docker.internal:3306/users_db
       PYTHONUNBUFFERED: 1
     ports:
       - "5003:5003"
@@ -42,7 +42,7 @@ services:
     image: brendankhow/geocode:1.0
     restart: always
     environment:
-      dbURL: mysql+mysqlconnector://root:root@host.docker.internal:8889/location
+      dbURL: mysql+mysqlconnector://root:root@host.docker.internal:3306/location
       PYTHONUNBUFFERED: 1
     ports:
       - "3001:3001"
@@ -59,7 +59,7 @@ services:
     depends_on:
       - carpark
     environment:
-      dbURL: mysql+mysqlconnector://root:root@host.docker.internal:8889/location
+      dbURL: mysql+mysqlconnector://root:root@host.docker.internal:3306/location
       PYTHONUNBUFFERED: 1
       carpark_URL: http://carpark:5001/consolidated
     ports:
@@ -77,7 +77,7 @@ services:
     depends_on:
       - carpark
     environment:
-      dbURL: mysql+mysqlconnector://root:root@host.docker.internal:8889/users_db
+      dbURL: mysql+mysqlconnector://root:root@host.docker.internal:3306/users_db
       PYTHONUNBUFFERED: 1
       carpark_URL: http://carpark:5001/consolidated
     ports:
@@ -93,7 +93,7 @@ services:
     image: brendankhow/users:1.0
     restart: always
     environment:
-      dbURL: mysql+mysqlconnector://root:root@host.docker.internal:8889/users_db
+      dbURL: mysql+mysqlconnector://root:root@host.docker.internal:3306/users_db
       PYTHONUNBUFFERED: 1
     ports:
       - "5002:5002"
