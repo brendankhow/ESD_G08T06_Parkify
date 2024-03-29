@@ -80,7 +80,8 @@ def get_data():
             "ppCode": ppCode,  # Use ppCode as the key
             "coordinates": f"{lon2},{lat2}",
             "ppName": carpark["ppName"],
-            "distance": distance
+            "distance": distance,
+            "parkingSystem": carpark["parkingSystem"]
         }
         filtered_carpark_data.append(carpark_info)
     
