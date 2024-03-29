@@ -46,26 +46,52 @@ class UserFavourite(db.Model):
         self.phone_number = phone_number
         self.favourite = favourite
 
-def notify_new_entries():
+# Define a flag to indicate whether the notify_users function is currently running
+notify_users_running = False
+
+def notify_users():
     with app.app_context():
-        # Check for new entries in the database
-        new_entries = UserFavourite.query.filter_by(notified=False).all()
+         # Use invoke_http to fetch carpark details
+        response = requests.get(carpark_URL)
+        if response.status_code != 200:
+            # Handle the case where the request fails
+            return jsonify({"error": "Failed to retrieve data from the external API"}), 500
+
+        consolidated_data = response.json()  # Access the list of car park data
         
-        for entry in new_entries:
-            # Send notification
-            send_notification(entry)
+        users = UserFavourite.query.all()
+        for user in users:
+            if user.phone_number and user.favourite:
+                fav_carparks = user.favourite.split(',')
+                messages = []
 
-            # Mark entry as notified
-            entry.notified = True
-            db.session.commit()
+                for fav in fav_carparks:
+                    carpark_details = consolidated_data.get(fav)
+                    if carpark_details:
+                        car_details = carpark_details.get('vehicles', {}).get('Car', {})
+                        lots_available = car_details.get('lotsAvailable', 'N/A')
+                        pricing = car_details.get('pricing', {})
+                        start_times = pricing.get('startTime', [])
+                        end_times = pricing.get('endTime', [])
+                        rates = pricing.get('weekdayRate', [])
 
-def send_notification(entry):
-    # Construct message
-    message = f"New entry added:\nUsername: {entry.username}\nEmail: {entry.email}\nPhone Number: {entry.phone_number}\nFavorite: {entry.favourite}"
+                        if len(start_times) == len(end_times) == len(rates):
+                            message = f"Carpark {fav}: Available - {lots_available}, Rates:\n"
+                            for i in range(len(start_times)):
+                                message += f"{start_times[i]} to {end_times[i]} - {rates[i]}\n"
+                            messages.append(message)
+                        else:
+                            messages.append(f"Carpark {fav} details not found.")
+                    else:
+                        messages.append(f"Carpark {fav} details not found.")
 
-    # Send SMS
-    send_sms(entry.phone_number, message)
+                send_sms(user.phone_number, "\n".join(messages))
+        return jsonify({"message": "SMS notifications sent successfully"}), 200
 
+def schedule_notification_delayed():
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(func=notify_users, trigger='date', run_date=datetime.now() + timedelta(minutes=1), timezone=pytz.timezone('Asia/Singapore'))
+    scheduler.start()
 def send_sms(to, message):
     client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
     client.messages.create(
@@ -80,13 +106,8 @@ if __name__ == '__main__':
         with engine.connect() as connection:
             connection.execute(text("CREATE DATABASE IF NOT EXISTS users_db"))
             connection.execute(text("USE users_db"))
-            connection.execute(text("CREATE TABLE IF NOT EXISTS users_fav_table (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, phone_number VARCHAR(20) NOT NULL, favourite VARCHAR(255) NOT NULL, notified BOOLEAN DEFAULT FALSE)"))
+            connection.execute(text("CREATE TABLE IF NOT EXISTS users_fav_table (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, phone_number VARCHAR(20) NOT NULL, favourite VARCHAR(255) NOT NULL)"))
             connection.execute(text("CREATE TABLE IF NOT EXISTS users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, phone_number VARCHAR(20) NOT NULL, PRIMARY KEY (username, email))"))
         db.create_all()
-
-        # Schedule job to notify about new entries every 2 minutes
-        scheduler = BackgroundScheduler()
-        scheduler.add_job(func=notify_new_entries, trigger='interval', minutes=2)
-        scheduler.start()
-
+    schedule_notification_delayed()
     app.run(host='0.0.0.0', port=5004, debug=True)
