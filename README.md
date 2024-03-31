@@ -4,7 +4,7 @@
     <img src="/parkify.png" alt="Parkify Logo">
 </div>
 
-- Youtube Demo Link: <link>
+- Youtube Demo Link: https://www.youtube.com/watch?v=ahlyL7jHlZw&feature=youtu.be
 
 ## Table of Contents
 
