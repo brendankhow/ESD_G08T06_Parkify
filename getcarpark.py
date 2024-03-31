@@ -9,7 +9,6 @@ import requests
 from datetime import datetime
 from sqlalchemy import create_engine, text
 from os import environ
-from invokes import invoke_http
 import json
 
 app = Flask(__name__)

@@ -3,13 +3,14 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from sqlalchemy import create_engine, text
 from os import environ
-from invokes import invoke_http
+
 # scheduler
 import pytz
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 from requests import get
 import requests
+import pytz
 
 from twilio.rest import Client
 
@@ -26,9 +27,9 @@ db = SQLAlchemy(app)
 CORS(app)
 
 # Twilio settings
-TWILIO_ACCOUNT_SID = 'AC4c2f5867563167ee03c132d8ca8086fb'
-TWILIO_AUTH_TOKEN = '87044ecdb00c7cfd9ac8edc1f013656f'
-TWILIO_PHONE_NUMBER = '+15642242132'
+TWILIO_ACCOUNT_SID = 'ACe015a2003e0631d5fd21582977238a35'
+TWILIO_AUTH_TOKEN = 'dd76494b031d076c0f94b4ebee02af46'
+TWILIO_PHONE_NUMBER = '+12054635814'
 class UserFavourite(db.Model):
     __tablename__ = 'users_fav_table'
 
@@ -48,19 +49,6 @@ class UserFavourite(db.Model):
 notify_users_running = False
 
 @app.route("/notify_users")
-def trigger_notify_users():
-    global notify_users_running
-    # Check if notify_users is already running
-    if notify_users_running:
-        return jsonify({"message": "notify_users is already running"}), 400
-    # Set the flag to indicate that notify_users is running
-    notify_users_running = True
-    # Execute the notify_users function
-    message, status_code = notify_users()
-    # Reset the flag after execution
-    notify_users_running = False
-    return message, status_code
-
 def notify_users():
     with app.app_context():
          # Use invoke_http to fetch carpark details
@@ -100,12 +88,10 @@ def notify_users():
                 send_sms(user.phone_number, "\n".join(messages))
         return jsonify({"message": "SMS notifications sent successfully"}), 200
 
-def schedule_daily_notifications():
+def schedule_notification_delayed():
     scheduler = BackgroundScheduler()
-    # scheduler.add_job(func=trigger_notify_users, trigger='cron', hour=10)
-    scheduler.add_job(func=trigger_notify_users, trigger='cron', hour=10, timezone=pytz.timezone('Asia/Singapore'))
+    scheduler.add_job(func=notify_users, trigger='date', run_date=datetime.now() + timedelta(minutes=1), timezone=pytz.timezone('Asia/Singapore'))
     scheduler.start()
-
 def send_sms(to, message):
     client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
     client.messages.create(
@@ -123,5 +109,5 @@ if __name__ == '__main__':
             connection.execute(text("CREATE TABLE IF NOT EXISTS users_fav_table (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, phone_number VARCHAR(20) NOT NULL, favourite VARCHAR(255) NOT NULL)"))
             connection.execute(text("CREATE TABLE IF NOT EXISTS users (username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, phone_number VARCHAR(20) NOT NULL, PRIMARY KEY (username, email))"))
         db.create_all()
-    schedule_daily_notifications()
+    schedule_notification_delayed()
     app.run(host='0.0.0.0', port=5004, debug=True)

@@ -90,7 +90,7 @@ def get_carpark_locations():
     # Retrieve and return the locations from the database
     locations = Location.query.all()
     if locations:
-        return jsonify({"locations": [location.json() for location in locations]})
+        return jsonify({"locations": [location.json() for location in locations]}), 200
     else:
         return jsonify({"message": "No carpark locations found."}), 404
 

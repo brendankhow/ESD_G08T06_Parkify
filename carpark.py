@@ -312,7 +312,7 @@ def insert_carpark_season(season_data):
             db.session.add(new_season)
     db.session.commit()
 
-                                       ##### new restructure data function#######
+##### new restructure data function#######
 def restructure_carpark_data(data, lots_data):
     # Initialize a dictionary to store the restructured data
     restructured_data = {}
@@ -526,11 +526,6 @@ def get_all():
             "message": "There are no carpark data."
         }
     ), 404
-
-@app.route('/get_prices_data', methods=['GET'])
-def get_prices_data():
-    prices_data = fetch_carpark_prices()
-    return jsonify({"count": prices_data})
 
 ######### new consolidated restructure data ######
 @app.route("/consolidated")
