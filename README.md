@@ -57,25 +57,45 @@ Parkify is a car parking app designed to streamline the parking process.
 
 2. **Ensure everything is installed:**
    - Run `pip install -r requirements.txt` in terminal.
+   (Ensure no errors before proceeding to next step)
+   
+3. **File Setup for Twilio** (Compulsory only for notification microservice)
+   - Sign up for Twilio account: https://www.twilio.com/try-twilio.
+   - Verify your own number.
+   - Change credentials in notification.py.
+      - Search for "Twilio settings" and change the following:
+         TWILIO_ACCOUNT_SID = 'own account sid'
+         TWILIO_AUTH_TOKEN = 'own auth token'
+         TWILIO_PHONE_NUMBER = 'twilio phone number'
 
-3. **Docker Setup:**
+4. **Docker Setup:**
    - Open and run Docker Desktop application.
-   - Change dbURL link in compose.yaml file.
+   - Change image and dbURL link in compose.yaml file.
       - For Mac users:
-         - change to 'mysql+mysqlconnector://root:root@host.docker.internal:8889/database_name
+         - image: change docker id to your own docker id if you want to push the images to your own docker hub
+         - dbURL: change to 'mysql+mysqlconnector://root:root@host.docker.internal:8889/database_name
       - For Windows users:
-         - change to 'mysql+mysqlconnector://root@host.docker.internal:3306/database_name
+         - image: change docker id to your own docker id if you want to push the images to your own docker hub
+         - dbURL: change to 'mysql+mysqlconnector://root@host.docker.internal:3306/database_name
    - Build Docker images:
       - For Mac users:
+         - Change docker id in build.sh file.
          - Run `chmod +x build.sh` and then `./build.sh` in terminal.
       - For Windows users:
+         - Change docker id in build.sh file.
          - Run the 6 command lines in build.sh file individually in terminal.
 
-4. **Running of website:**
+5. **Running of website:**
    - Docker run: Run `docker compose up` in terminal.
+   (IMPORTANT: Please wait for 30 seconds for all py files to run)
 
-5. **Setting up frontend**
+6. **Setting up frontend**
    - Open and run MAMP/WAMP application.
+   - Change line 6 in check_user.php
+      - For Mac users:
+         - leave line 6 as '$pass = 'root';'
+      - For Windows users:
+         - change line 6 to '$pass = '';'
    - Copy 5 files into MAMP/WAMP directory.
       1. check_users.php
       2. frontend.html

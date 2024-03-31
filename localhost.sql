@@ -4344,9 +4344,9 @@ CREATE TABLE `users_fav_table` (
 --
 
 INSERT INTO `users_fav_table` (`id`, `username`, `email`, `phone_number`, `favourite`) VALUES
-(1, 'test', 'test@gmail.com', '+6598984468', 'S0048'),
-(2, 'test', 'test@gmail.com', '+6598984468', 'B0067'),
-(3, 'test', 'test@gmail.com', '+6598984468', 'K0081');
+(1, 'test', 'test@gmail.com', '+6598984468', 'A0046'),
+(2, 'test', 'test@gmail.com', '+6598984468', 'A0011'),
+(3, 'test', 'test@gmail.com', '+6598984468', 'M0040');
 
 --
 -- Indexes for dumped tables
