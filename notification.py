@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from sqlalchemy import create_engine, text
 from os import environ
-from invokes import invoke_http
+
 # scheduler
 import pytz
 from apscheduler.schedulers.background import BackgroundScheduler
