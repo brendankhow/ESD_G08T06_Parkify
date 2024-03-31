@@ -59,17 +59,23 @@ Parkify is a car parking app designed to streamline the parking process.
    - Run `pip install -r requirements.txt` in terminal.
    (Ensure no errors before proceeding to next step)
    
-3. **File Setup for Twilio** (Compulsory only for notification microservice)
-   - Sign up for Twilio account: https://www.twilio.com/try-twilio.
-   - Verify your own number.
-   - Change credentials in notification.py.
-      - Search for "Twilio settings" and change the following:
-         - TWILIO_ACCOUNT_SID = 'own account sid'
-         - TWILIO_AUTH_TOKEN = 'own auth token'
-         - TWILIO_PHONE_NUMBER = 'twilio phone number'
+3. **File Setup for Twilio** 
+   - Google Map API
+      - Sign up for google map API: https://developers.google.com/maps/documentation/javascript/get-api-key
+      - In frontend.html file, change API key in line 18 and 205
+
+   - Twilio acccount (Compulsory only for notification microservice)
+      - Sign up for Twilio account: https://www.twilio.com/try-twilio.
+      - Verify your own number.
+      - Change credentials in notification.py.
+         - Search for "Twilio settings" and change the following:
+            - TWILIO_ACCOUNT_SID = 'own account sid'
+            - TWILIO_AUTH_TOKEN = 'own auth token'
+            - TWILIO_PHONE_NUMBER = 'twilio phone number'
 
 4. **Docker Setup:**
    - Open and run Docker Desktop application.
+
    - Change image and dbURL link in compose.yaml file.
       - For Mac users:
          - image: change docker id to your own docker id if you want to push the images to your own docker hub
@@ -77,6 +83,7 @@ Parkify is a car parking app designed to streamline the parking process.
       - For Windows users:
          - image: change docker id to your own docker id if you want to push the images to your own docker hub
          - dbURL: change to 'mysql+mysqlconnector://root@host.docker.internal:3306/database_name
+
    - Build Docker images:
       - For Mac users:
          - Change docker id in build.sh file.
@@ -91,15 +98,18 @@ Parkify is a car parking app designed to streamline the parking process.
 
 6. **Setting up frontend**
    - Open and run MAMP/WAMP application.
+
    - Change line 6 in check_user.php
       - For Mac users:
          - leave line 6 as '$pass = 'root';'
       - For Windows users:
          - change line 6 to '$pass = '';'
+
    - Copy 5 files into MAMP/WAMP directory.
       1. check_users.php
       2. frontend.html
       3. login.html
       4. parkify.mp4
       5. parkify.png
+      
    - Open login.html in browser.
