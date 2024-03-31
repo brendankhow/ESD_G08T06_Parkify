@@ -12,7 +12,6 @@ from requests import get
 import requests
 import pytz
 
-
 from twilio.rest import Client
 
 app = Flask(__name__)
@@ -49,6 +48,7 @@ class UserFavourite(db.Model):
 # Define a flag to indicate whether the notify_users function is currently running
 notify_users_running = False
 
+@app.route("/notify_users")
 def notify_users():
     with app.app_context():
          # Use invoke_http to fetch carpark details

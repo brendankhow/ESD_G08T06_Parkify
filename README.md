@@ -1,90 +1,79 @@
-# esd-group6
+# :wave: ESD Project Parkify
 
-## Installation
+<div align="center">
+    <img src="/parkify.png" alt="Parkify Logo">
+</div>
 
-1. Ensure everything is installed: Run `pip install -r requirements.txt` in terminal.
+- Youtube Demo Link: <link>
 
-## Docker Setup
+## Table of Contents
 
-1. Build Docker images: Run `chmod +x build.sh` and then `./build.sh` in terminal.
-2. Docker run: Run `docker compose up` in terminal.
+- [Group Members](#group-members)
+- [Important Notes](#important-notes)
+- [Project Overview](#project-overview)
+  - [User Scenarios](#user-scenarios)
+- [Installation Guide](#installation-guide)
+  - [Project Setup](#project-setup)
 
-## WATCH THE MAGIC
+## Group Members
 
----------------------------------------------------------------------------------------------------------
+---
 
-## Pre-Run Setup
+| Name                | Student ID | Email                            |
+| ------------------- | ---------- | -------------------------------- |
+| Brendan Khow Bo Ren | 01415987   | brendankhow.2022@scis.smu.edu.sg |
+| Lee Pei Yi          | 01466725   | peiyi.lee.2022@smu.edu.sg        |
+| Liu Jia Hong        | 01449636   | jiahong.liu.2022@scis.smu.edu.sg |
+| Teo Jia Xuan Ryan   | 01420283   | ryan.teo.2022@scis.smu.edu.sg    |
+| Zia Kok Nuan Fei    | 01463932   | nuanfei.kok.2022@scis.smu.edu.sg |
 
-1. Change the port number to your MAMP port number.
-2. Create a `carpark` database in MySQL.
+---
 
-## Running the Application
+## Project Overview
 
-1. Run `python3 carpark.py`.
+Parkify is a car parking app designed to streamline the parking process.
 
-## Database Operations
+### User Scenarios
 
-1. To insert all data into the database: `/carparks/updateAll`.
-2. To view all data in the webpage: `/carparks/getAll`.
+1. **Users search for a carpark:**
 
-## Carpark Lots
+   - They can search for a specific location, say “Old Airport Road”, and from there, our application will generate a list of top 10 car parks that are closest to their searched location.
 
-1. To insert into the database: `/update_carparks_lots`.
-2. To view in JSON on the webpage: `/carparks_lots`.
+2. **Users add a car park to their favourites list:**
 
-## Carpark Prices
+   - For car parks that users visit frequently, they can ‘favourite’ it, or ‘unfavourite’ it if they wish to remove it from the list.
 
-1. To insert into the database: `/update_carparks_prices`.
-2. To view in JSON on the webpage: `/carparks_prices`.
+3. **Users receive notifications of their favourite car parks:**
 
-## Carpark Season
+   - Our web application sends notifications to users at a set time every day to alert them of lots availability as well as the car park prices to their mobile phones via SMS.
 
-1. To insert into the database: `/update_carparks_season`.
-2. To view in JSON on the webpage: `/carparks_season`.
+---
 
-## User Data
+## Installation Guide
 
-1. Run `python3 users.py`.
-2. To view user data: `/users`.
+### Project Setup
 
-## Frontend Setup
+1. **Import database into MySQL:**
+   - Import all 3 sql file into MySQL.
+      1. carpark.sql
+      2. location.sql
+      3. users_db.sql
+2. **Ensure everything is installed:**
+   - Run `pip install -r requirements.txt` in terminal.
 
-1. Bring `login.html`, `check_user.php`, `frontend.html` to your localhost route to run from the server.
-2. Make sure you change the port number in the address tab when it's open in Chrome.
-3. `frontend.html` will be empty when you enter it as there is no username passed into it. Therefore, run `login.html` and login accordingly for it to lead to `frontend.html`.
+3. **Docker Setup:**
+   - Open Docker Desktop application.
+   - Build Docker images: Run `chmod +x build.sh` and then `./build.sh` in terminal.
 
+4. **Running of website:**
+   - Docker run: Run `docker compose up` in terminal.
 
-
-What to do before running:
-1) change port number to mamp port number
-2) create carpaprk db in mysql
-
-To run the file: run python3 carpark.py
-
-To insert all data into db: /carparks/updateAll
-To view all in webpage: /carparks/getAll
-
-
-To view:
-To insert into db: /update_carparks_lots
-To view in json on webpage: /carparks_lots"
-
-To insert into db: /update_carparks_prices
-/To view in json on webpage:carparks_prices
-
-To insert into db: /update_carparks_season
-To view in json on webpage:/carparks_season
-
-To view all in webpage: /carpark/getAll
-
-
-
-run python3 users.py
-To view user data: /users
-
-
-Bring login.html, check_user.php, frontend.html to ur localhost route to run from server. 
-Run from there, make sure u change check what's ur port number in address tab when it's open in chrome. 
-
-Frontend.html will be empty when u enter it as there is no username passed into it therefore, run login.html and login accordingly for it to lead to frontend.html.
-
+5. **Setting up frontend**
+   - Open MAMP/WAMP application.
+   - Copy 5 files into MAMP/WAMP directory.
+      1. check_users.php
+      2. frontend.html
+      3. login.html
+      4. parkify.mp4
+      5. parkify.png
+   - Open login.html in browser.
