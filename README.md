@@ -9,7 +9,6 @@
 ## Table of Contents
 
 - [Group Members](#group-members)
-- [Important Notes](#important-notes)
 - [Project Overview](#project-overview)
   - [User Scenarios](#user-scenarios)
 - [Installation Guide](#installation-guide)
