@@ -99,7 +99,7 @@ Parkify is a car parking app designed to streamline the parking process.
 6. **Setting up frontend**
    - Open and run MAMP/WAMP application.
 
-   - Change line 6 in check_user.php
+   - Change line 6 in check_user.php.
       - For Mac users:
          - leave line 6 as '$pass = 'root';'
       - For Windows users:
@@ -111,5 +111,5 @@ Parkify is a car parking app designed to streamline the parking process.
       3. login.html
       4. parkify.mp4
       5. parkify.png
-      
+
    - Open login.html in browser.
