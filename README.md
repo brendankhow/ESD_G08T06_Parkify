@@ -88,6 +88,7 @@ Parkify is a car parking app designed to streamline the parking process.
       - For Mac users:
          - Change docker id in build.sh file.
          - Run `chmod +x build.sh` and then `./build.sh` in terminal.
+         - If the above step does not work, run the 6 command lines in build.sh file individually in terminal.
       - For Windows users:
          - Change docker id in build.sh file.
          - Run the 6 command lines in build.sh file individually in terminal.
