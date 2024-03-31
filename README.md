@@ -64,9 +64,9 @@ Parkify is a car parking app designed to streamline the parking process.
    - Verify your own number.
    - Change credentials in notification.py.
       - Search for "Twilio settings" and change the following:
-         TWILIO_ACCOUNT_SID = 'own account sid'
-         TWILIO_AUTH_TOKEN = 'own auth token'
-         TWILIO_PHONE_NUMBER = 'twilio phone number'
+         - TWILIO_ACCOUNT_SID = 'own account sid'
+         - TWILIO_AUTH_TOKEN = 'own auth token'
+         - TWILIO_PHONE_NUMBER = 'twilio phone number'
 
 4. **Docker Setup:**
    - Open and run Docker Desktop application.
