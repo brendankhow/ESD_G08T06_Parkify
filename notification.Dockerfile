@@ -9,5 +9,5 @@ RUN echo $TZ > /etc/timezone
 WORKDIR /usr/src/app
 COPY requirements.txt ./
 RUN python -m pip install --no-cache-dir -r requirements.txt
-COPY ./notification.py ./invokes.py ./
+COPY ./notification.py .
 CMD [ "python", "./notification.py" ]
