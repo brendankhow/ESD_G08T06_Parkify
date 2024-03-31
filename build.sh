@@ -1,4 +1,4 @@
-#!/bin/bash
+# For Windows users: Run the 6 command lines in build.sh file individually in terminal.
 
 docker build -t brendankhow/carpark:1.0 -f carpark.Dockerfile ./
 docker build -t brendankhow/favourites:1.0 -f favourites.Dockerfile ./
