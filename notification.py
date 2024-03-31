@@ -28,7 +28,7 @@ CORS(app)
 
 # Twilio settings
 TWILIO_ACCOUNT_SID = 'ACe015a2003e0631d5fd21582977238a35'
-TWILIO_AUTH_TOKEN = 'dd76494b031d076c0f94b4ebee02af46'
+TWILIO_AUTH_TOKEN = 'a5ff4664d297c93bcd068e7ca11b2b52'
 TWILIO_PHONE_NUMBER = '+12054635814'
 class UserFavourite(db.Model):
     __tablename__ = 'users_fav_table'
