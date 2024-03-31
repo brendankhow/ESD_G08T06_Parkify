@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Generation Time: Mar 31, 2024 at 09:42 AM
+-- Generation Time: Mar 31, 2024 at 10:13 AM
 -- Server version: 5.7.39
 -- PHP Version: 8.2.0
 
@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Database: `carpark`
 --
+CREATE DATABASE IF NOT EXISTS `carpark` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `carpark`;
 
 -- --------------------------------------------------------
 
@@ -4265,6 +4267,112 @@ ALTER TABLE `season`
 --
 ALTER TABLE `prices`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3903;
+--
+-- Database: `location`
+--
+CREATE DATABASE IF NOT EXISTS `location` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `location`;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `location`
+--
+
+CREATE TABLE `location` (
+  `carparkName` varchar(100) NOT NULL,
+  `coordinates` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `location`
+--
+
+INSERT INTO `location` (`carparkName`, `coordinates`) VALUES
+('singapore management university', '1.2962727,103.8501578');
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `location`
+--
+ALTER TABLE `location`
+  ADD PRIMARY KEY (`carparkName`);
+--
+-- Database: `users_db`
+--
+CREATE DATABASE IF NOT EXISTS `users_db` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `users_db`;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+CREATE TABLE `users` (
+  `username` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `phone_number` varchar(20) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`username`, `email`, `phone_number`) VALUES
+('test', 'test@gmail.com', '+6598984468');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users_fav_table`
+--
+
+CREATE TABLE `users_fav_table` (
+  `id` int(11) NOT NULL,
+  `username` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `phone_number` varchar(20) NOT NULL,
+  `favourite` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `users_fav_table`
+--
+
+INSERT INTO `users_fav_table` (`id`, `username`, `email`, `phone_number`, `favourite`) VALUES
+(1, 'test', 'test@gmail.com', '+6598984468', 'S0048'),
+(2, 'test', 'test@gmail.com', '+6598984468', 'B0067'),
+(3, 'test', 'test@gmail.com', '+6598984468', 'K0081');
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`username`,`email`);
+
+--
+-- Indexes for table `users_fav_table`
+--
+ALTER TABLE `users_fav_table`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `users_fav_table`
+--
+ALTER TABLE `users_fav_table`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

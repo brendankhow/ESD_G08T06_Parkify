@@ -53,10 +53,8 @@ Parkify is a car parking app designed to streamline the parking process.
 ### Project Setup
 
 1. **Import database into MySQL:**
-   - Import all 3 sql file into MySQL.
-      1. carpark.sql
-      2. location.sql
-      3. users_db.sql
+   - Import localhost.sql file into MySQL.
+
 2. **Ensure everything is installed:**
    - Run `pip install -r requirements.txt` in terminal.
 
