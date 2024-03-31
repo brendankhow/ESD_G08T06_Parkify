@@ -60,6 +60,11 @@ Parkify is a car parking app designed to streamline the parking process.
 
 3. **Docker Setup:**
    - Open and run Docker Desktop application.
+   - Change dbURL link in compose.yaml file.
+      - For Mac users:
+         - change to 'mysql+mysqlconnector://root:root@host.docker.internal:8889/database_name
+      - For Windows users:
+         - change to 'mysql+mysqlconnector://root@host.docker.internal:3306/database_name
    - Build Docker images:
       - For Mac users:
          - Run `chmod +x build.sh` and then `./build.sh` in terminal.
