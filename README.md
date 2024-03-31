@@ -59,14 +59,18 @@ Parkify is a car parking app designed to streamline the parking process.
    - Run `pip install -r requirements.txt` in terminal.
 
 3. **Docker Setup:**
-   - Open Docker Desktop application.
-   - Build Docker images: Run `chmod +x build.sh` and then `./build.sh` in terminal.
+   - Open and run Docker Desktop application.
+   - Build Docker images:
+      - For Mac users:
+         - Run `chmod +x build.sh` and then `./build.sh` in terminal.
+      - For Windows users:
+         - Run the 6 command lines in build.sh file individually in terminal.
 
 4. **Running of website:**
    - Docker run: Run `docker compose up` in terminal.
 
 5. **Setting up frontend**
-   - Open MAMP/WAMP application.
+   - Open and run MAMP/WAMP application.
    - Copy 5 files into MAMP/WAMP directory.
       1. check_users.php
       2. frontend.html
